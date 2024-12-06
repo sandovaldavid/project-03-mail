@@ -4,15 +4,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ed5a59ef-6b95-4807-89f2-618b956c50f2" name="Changes" comment=" 🔧 .idea">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/project3_mail.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/project3_mail.iml" afterDir="false" />
+    <list default="true" id="ed5a59ef-6b95-4807-89f2-618b956c50f2" name="Changes" comment=":card_file_box:  add  DB">
+      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ChangesViewManager">
+    <option name="groupingKeys">
+      <option value="directory" />
+    </option>
   </component>
   <component name="DatabaseLocalColorSettings">
     <colors>
@@ -41,7 +45,9 @@
   &quot;associatedIndex&quot;: 6
 }</component>
   <component name="ProjectId" id="2paIBILzRdYEZS14N9ebOezfJ08" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -137,7 +143,11 @@
       <workItem from="1732998900266" duration="25000" />
       <workItem from="1732998948898" duration="522000" />
       <workItem from="1733000189614" duration="124000" />
-      <workItem from="1733000367090" duration="197000" />
+      <workItem from="1733000367090" duration="797000" />
+      <workItem from="1733001209578" duration="40000" />
+      <workItem from="1733115651095" duration="759000" />
+      <workItem from="1733259276478" duration="23000" />
+      <workItem from="1733259308205" duration="26000" />
     </task>
     <task id="LOCAL-00001" summary="initial project">
       <option name="closed" value="true" />
@@ -195,7 +205,23 @@
       <option name="project" value="LOCAL" />
       <updated>1733000256739</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary=" 🔧 .idea">
+      <option name="closed" value="true" />
+      <created>1733000645585</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1733000645585</updated>
+    </task>
+    <task id="LOCAL-00009" summary=":card_file_box:  add  DB">
+      <option name="closed" value="true" />
+      <created>1733000669838</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1733000669838</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -207,6 +233,8 @@
     <MESSAGE value=":card_file_box: Migrations DB" />
     <MESSAGE value=":see_no_evil: add .gitignore" />
     <MESSAGE value="  .idea" />
-    <option name="LAST_COMMIT_MESSAGE" value="  .idea" />
+    <MESSAGE value="  .idea" />
+    <MESSAGE value=":card_file_box:  add  DB" />
+    <option name="LAST_COMMIT_MESSAGE" value=":card_file_box:  add  DB" />
   </component>
 </project>
