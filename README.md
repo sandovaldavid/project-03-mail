@@ -48,8 +48,8 @@ This project implements a single-page email client (SPA) using **Django** for th
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/sandovaldavid/Project03_mail.git project03_mail
-   cd project03_mail
+   git clone https://github.com/sandovaldavid/project-03-mail.git
+   cd project-03-mail
    ```
 
 2. Create a virtual environment and install dependencies:
