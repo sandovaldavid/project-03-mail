@@ -33,10 +33,7 @@
 
 <div id="compose-view">
 	<h3>New Email</h3>
-	<form
-		id="compose-form"
-		method="post"
-		action="{% url 'compose' %}">
+	<form id="compose-form">
 		{% csrf_token %}
 		<div class="form-group">
 			From:
