@@ -221,30 +221,6 @@ function reply_to_email(email) {
 	document.querySelector('#compose-body').value = `\n\nOn ${email.timestamp} ${email.sender} wrote:\n${email.body}`;
 }
 
-// Add new helper function for toggling read status
-function toggle_read(email_id, read) {
-	return fetch(`/emails/${email_id}`, {
-		method: 'PUT',
-		body: JSON.stringify({
-			read: !read,
-		}),
-		headers: {
-			'Content-Type': 'application/json',
-		},
-	}).then(() => load_mailbox('inbox'));
-}
-
-// Add new helper function for replying to emails
-function reply_to_email(email) {
-	// Show compose view
-	compose_email();
-
-	// Pre-fill composition fields
-	document.querySelector('#compose-recipients').value = email.sender;
-	document.querySelector('#compose-subject').value = email.subject.startsWith('Re: ') ? email.subject : `Re: ${email.subject}`;
-	document.querySelector('#compose-body').value = `\n\nOn ${email.timestamp} ${email.sender} wrote:\n${email.body}`;
-}
-
 function mark_email_as_read(email_id) {
 	return fetch(`/emails/${email_id}`, {
 		method: 'PUT',
