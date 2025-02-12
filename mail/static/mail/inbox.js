@@ -73,6 +73,7 @@ function load_mailbox(mailbox) {
                     <th>From</th>
                     <th>Subject</th>
                     <th>Timestamp</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="emails-tbody"></tbody>
@@ -85,21 +86,57 @@ function load_mailbox(mailbox) {
 		.then((emails) => {
 			const tbody = document.querySelector('#emails-tbody');
 
-			// Display each email in the table
 			emails.forEach((email) => {
 				const row = document.createElement('tr');
-
-				// Style for read/unread emails
 				row.className = email.read ? 'read' : 'unread';
 
 				row.innerHTML = `
                     <td>${email.sender}</td>
                     <td>${email.subject}</td>
                     <td>${email.timestamp}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary read-btn">
+                            ${email.read ? 'Mark Unread' : 'Mark Read'}
+                        </button>
+                        ${
+							mailbox === 'sent'
+								? ''
+								: `
+                            <button class="btn btn-sm btn-outline-primary archive-btn">
+                                ${email.archived ? 'Unarchive' : 'Archive'}
+                            </button>
+                        `
+						}
+                    </td>
                 `;
 
 				// Add click handler to view email
-				row.addEventListener('click', () => view_email(email.id));
+				const cells = row.querySelectorAll('td:not(:last-child)');
+				cells.forEach((cell) => {
+					cell.addEventListener('click', () => view_email(email.id));
+				});
+
+				// Add read/unread button handler
+				row.querySelector('.read-btn').addEventListener('click', (e) => {
+					e.stopPropagation();
+					fetch(`/emails/${email.id}`, {
+						method: 'PUT',
+						body: JSON.stringify({
+							read: !email.read,
+						}),
+						headers: {
+							'Content-Type': 'application/json',
+						},
+					}).then(() => load_mailbox(mailbox));
+				});
+
+				// Add archive button handler if not in sent mailbox
+				if (mailbox !== 'sent') {
+					row.querySelector('.archive-btn').addEventListener('click', (e) => {
+						e.stopPropagation();
+						toggle_archive(email.id, email.archived);
+					});
+				}
 
 				tbody.append(row);
 			});
