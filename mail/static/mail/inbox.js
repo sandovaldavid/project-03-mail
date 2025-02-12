@@ -150,29 +150,99 @@ function view_email(email_id) {
 			document.querySelector('#emails-view').style.display = 'block';
 			document.querySelector('#compose-view').style.display = 'none';
 
-			// Display email content with archive button
+			// Display email content with buttons for replying, archiving, and marking as read/unread
 			document.querySelector('#emails-view').innerHTML = `
-                <div class="email-detail">
-                    <p><strong>From:</strong> ${email.sender}</p>
-                    <p><strong>To:</strong> ${email.recipients.join(', ')}</p>
-                    <p><strong>Subject:</strong> ${email.subject}</p>
-                    <p><strong>Timestamp:</strong> ${email.timestamp}</p>
-                    <button class="btn btn-sm btn-outline-primary" id="archive-btn">
-                        ${email.archived ? 'Unarchive' : 'Archive'}
-                    </button>
-                    <hr>
-                    <p>${email.body}</p>
+                <div class="email-detail card">
+                    <div class="card-header">
+                        <h5 class="mb-0">${email.subject}</h5>
+                        <small class="text-muted">${email.timestamp}</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="email-metadata mb-3">
+                            <p class="mb-1"><strong>From:</strong> ${email.sender}</p>
+                            <p class="mb-1"><strong>To:</strong> ${email.recipients.join(', ')}</p>
+                        </div>
+                        
+                        <div class="email-actions mb-3">
+                            <button class="btn btn-sm btn-outline-primary" id="reply-btn">
+                                <i class="fas fa-reply"></i> Reply
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" id="archive-btn">
+                                ${email.archived ? 'Unarchive' : 'Archive'}
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" id="read-btn">
+                                Mark as ${email.read ? 'Unread' : 'Read'}
+                            </button>
+                        </div>
+                        
+                        <hr>
+                        <div class="email-body">
+                            ${email.body.replace(/\n/g, '<br>')}
+                        </div>
+                    </div>
                 </div>
             `;
 
-			// Add archive button event listener
+			// Add event listeners for buttons
 			document.querySelector('#archive-btn').addEventListener('click', () => toggle_archive(email.id, email.archived));
 
-			// Mark email as read separately
+			document.querySelector('#read-btn').addEventListener('click', () => toggle_read(email.id, email.read));
+
+			document.querySelector('#reply-btn').addEventListener('click', () => reply_to_email(email));
+
+			// Mark email as read
 			if (!email.read) {
 				mark_email_as_read(email.id);
 			}
 		});
+}
+
+// Add new helper function for toggling read status
+function toggle_read(email_id, read) {
+	return fetch(`/emails/${email_id}`, {
+		method: 'PUT',
+		body: JSON.stringify({
+			read: !read,
+		}),
+		headers: {
+			'Content-Type': 'application/json',
+		},
+	}).then(() => load_mailbox('inbox'));
+}
+
+// Add new helper function for replying to emails
+function reply_to_email(email) {
+	// Show compose view
+	compose_email();
+
+	// Pre-fill composition fields
+	document.querySelector('#compose-recipients').value = email.sender;
+	document.querySelector('#compose-subject').value = email.subject.startsWith('Re: ') ? email.subject : `Re: ${email.subject}`;
+	document.querySelector('#compose-body').value = `\n\nOn ${email.timestamp} ${email.sender} wrote:\n${email.body}`;
+}
+
+// Add new helper function for toggling read status
+function toggle_read(email_id, read) {
+	return fetch(`/emails/${email_id}`, {
+		method: 'PUT',
+		body: JSON.stringify({
+			read: !read,
+		}),
+		headers: {
+			'Content-Type': 'application/json',
+		},
+	}).then(() => load_mailbox('inbox'));
+}
+
+// Add new helper function for replying to emails
+function reply_to_email(email) {
+	// Show compose view
+	compose_email();
+
+	// Pre-fill composition fields
+	document.querySelector('#compose-recipients').value = email.sender;
+	document.querySelector('#compose-subject').value = email.subject.startsWith('Re: ') ? email.subject : `Re: ${email.subject}`;
+	document.querySelector('#compose-body').value = `\n\nOn ${email.timestamp} ${email.sender} wrote:\n${email.body}`;
 }
 
 function mark_email_as_read(email_id) {
