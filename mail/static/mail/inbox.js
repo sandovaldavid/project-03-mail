@@ -95,17 +95,17 @@ function load_mailbox(mailbox) {
                     <td>${email.subject}</td>
                     <td>${email.timestamp}</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary read-btn">
-                            ${email.read ? 'Mark Unread' : 'Mark Read'}
-                        </button>
                         ${
-							mailbox === 'sent'
-								? ''
-								: `
+							mailbox !== 'sent'
+								? `
+                            <button class="btn btn-sm btn-outline-primary read-btn">
+                                ${email.read ? 'Mark Unread' : 'Mark Read'}
+                            </button>
                             <button class="btn btn-sm btn-outline-primary archive-btn">
                                 ${email.archived ? 'Unarchive' : 'Archive'}
                             </button>
                         `
+								: ''
 						}
                     </td>
                 `;
@@ -116,26 +116,33 @@ function load_mailbox(mailbox) {
 					cell.addEventListener('click', () => view_email(email.id));
 				});
 
-				// Add read/unread button handler
-				row.querySelector('.read-btn').addEventListener('click', (e) => {
-					e.stopPropagation();
-					fetch(`/emails/${email.id}`, {
-						method: 'PUT',
-						body: JSON.stringify({
-							read: !email.read,
-						}),
-						headers: {
-							'Content-Type': 'application/json',
-						},
-					}).then(() => load_mailbox(mailbox));
-				});
-
-				// Add archive button handler if not in sent mailbox
+				// Solo agregar event listeners si NO es el mailbox 'sent'
 				if (mailbox !== 'sent') {
-					row.querySelector('.archive-btn').addEventListener('click', (e) => {
-						e.stopPropagation();
-						toggle_archive(email.id, email.archived);
-					});
+					// Add read/unread button handler
+					const readBtn = row.querySelector('.read-btn');
+					if (readBtn) {
+						readBtn.addEventListener('click', (e) => {
+							e.stopPropagation();
+							fetch(`/emails/${email.id}`, {
+								method: 'PUT',
+								body: JSON.stringify({
+									read: !email.read,
+								}),
+								headers: {
+									'Content-Type': 'application/json',
+								},
+							}).then(() => load_mailbox(mailbox));
+						});
+					}
+
+					// Add archive button handler
+					const archiveBtn = row.querySelector('.archive-btn');
+					if (archiveBtn) {
+						archiveBtn.addEventListener('click', (e) => {
+							e.stopPropagation();
+							toggle_archive(email.id, email.archived);
+						});
+					}
 				}
 
 				tbody.append(row);
