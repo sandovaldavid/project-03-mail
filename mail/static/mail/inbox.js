@@ -4,8 +4,6 @@ const VIEWS = {
 };
 
 document.addEventListener('DOMContentLoaded', function () {
-	console.log('DOM loaded'); // Debug log
-
 	const emailsView = document.querySelector('#emails-view');
 	const composeView = document.querySelector('#compose-view');
 
@@ -65,7 +63,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				return response.json();
 			})
 			.then((result) => {
-				console.log('Success:', result);
 				load_mailbox('sent');
 			})
 			.catch((error) => {
@@ -95,15 +92,9 @@ function load_mailbox(mailbox) {
 	const emailsView = document.querySelector('#' + VIEWS.EMAILS);
 	showView(VIEWS.EMAILS);
 
-	// Add console.log for debugging
-	console.log('Loading mailbox:', mailbox);
-	console.log('Emails view element:', emailsView);
-
-	// Show the mailbox name with styling
+	// Show the mailbox name
 	emailsView.innerHTML = `
-        <h3 class="mb-3">${
-			mailbox.charAt(0).toUpperCase() + mailbox.slice(1)
-		}</h3>
+        <h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>
         <div class="email-list"></div>
     `;
 
@@ -143,7 +134,9 @@ function load_mailbox(mailbox) {
                         </div>
                     </div>
                     <div class="email-actions">
-                        <button class="btn btn-sm btn-outline-primary read-btn">
+                        <button class="btn btn-sm btn-outline-primary read-btn" title="${
+							email.read ? 'Mark as unread' : 'Mark as read'
+						}">
                             ${
 								email.read
 									? '<i class="fas fa-envelope-open"></i>'
@@ -153,12 +146,24 @@ function load_mailbox(mailbox) {
                         ${
 							mailbox !== 'sent'
 								? `
-                            <button class="btn btn-sm btn-outline-secondary archive-btn ms-2">
+                            <button class="btn btn-sm ${
+								email.archived
+									? 'btn-outline-success'
+									: 'btn-outline-secondary'
+							} archive-btn ms-2" 
+                                    title="${
+										email.archived
+											? 'Move to inbox'
+											: 'Archive'
+									}">
                                 ${
 									email.archived
 										? '<i class="fas fa-inbox"></i>'
 										: '<i class="fas fa-archive"></i>'
 								}
+                                <span class="button-text ms-1">${
+									email.archived ? 'Unarchive' : 'Archive'
+								}</span>
                             </button>
                         `
 								: ''
@@ -245,16 +250,29 @@ function view_email(email_id) {
 }
 
 // Add new helper function for toggling read status
-function toggle_read(email_id, read) {
+function toggle_archive(email_id, archived) {
+	const button = event.target.closest('.archive-btn');
+	button.disabled = true; // Prevent double-clicks
+
 	return fetch(`/emails/${email_id}`, {
 		method: 'PUT',
 		body: JSON.stringify({
-			read: !read,
+			archived: !archived,
 		}),
 		headers: {
 			'Content-Type': 'application/json',
 		},
-	}).then(() => load_mailbox('inbox'));
+	})
+		.then(() => {
+			button.innerHTML = `<i class="fas fa-check"></i> ${
+				archived ? 'Unarchived' : 'Archived'
+			}`;
+			setTimeout(() => load_mailbox('inbox'), 1000);
+		})
+		.catch((error) => {
+			console.error('Error:', error);
+			button.disabled = false;
+		});
 }
 
 function hideAllViews() {
@@ -300,20 +318,6 @@ function mark_email_as_read(email_id) {
 	});
 }
 
-function toggle_archive(email_id, archived) {
-	return fetch(`/emails/${email_id}`, {
-		method: 'PUT',
-		body: JSON.stringify({
-			archived: !archived,
-		}),
-		headers: {
-			'Content-Type': 'application/json',
-		},
-	}).then(() => {
-		load_mailbox('inbox');
-	});
-}
-
 function updateActiveButton(currentView) {
 	// Remove active class from all buttons
 	['inbox', 'sent', 'archived', 'compose'].forEach((id) => {
@@ -326,4 +330,36 @@ function updateActiveButton(currentView) {
 	if (activeButton) {
 		activeButton.classList.add('active');
 	}
+}
+
+function toggle_read(email_id, read) {
+	const button = event.target.closest('.read-btn');
+	button.disabled = true; // Prevent double-clicks
+
+	return fetch(`/emails/${email_id}`, {
+		method: 'PUT',
+		body: JSON.stringify({
+			read: !read,
+		}),
+		headers: {
+			'Content-Type': 'application/json',
+		},
+	})
+		.then(() => {
+			button.innerHTML = !read
+				? '<i class="fas fa-envelope-open"></i>'
+				: '<i class="fas fa-envelope"></i>';
+			button.title = !read ? 'Mark as unread' : 'Mark as read';
+
+			// Update email item background
+			const emailItem = button.closest('.email-item');
+			emailItem.classList.toggle('read');
+			emailItem.classList.toggle('unread');
+
+			button.disabled = false;
+		})
+		.catch((error) => {
+			console.error('Error:', error);
+			button.disabled = false;
+		});
 }
