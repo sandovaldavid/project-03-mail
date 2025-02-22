@@ -70,87 +70,100 @@ function load_mailbox(mailbox) {
 	document.querySelector('#emails-view').style.display = 'block';
 	document.querySelector('#compose-view').style.display = 'none';
 
-	// Show the mailbox name and create table structure
+	// Show the mailbox name with styling
 	document.querySelector('#emails-view').innerHTML = `
-        <h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>From</th>
-                    <th>Subject</th>
-                    <th>Timestamp</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="emails-tbody"></tbody>
-        </table>
+        <h3 class="mb-3">${
+			mailbox.charAt(0).toUpperCase() + mailbox.slice(1)
+		}</h3>
+        <div class="email-list">
+        </div>
     `;
 
-	// Fetch emails from the API
+	// Fetch emails for the mailbox
 	fetch(`/emails/${mailbox}`)
 		.then((response) => response.json())
 		.then((emails) => {
-			const tbody = document.querySelector('#emails-tbody');
+			const emailList = document.querySelector('.email-list');
+
+			if (emails.length === 0) {
+				emailList.innerHTML =
+					'<div class="p-3 text-muted">No emails to display</div>';
+				return;
+			}
 
 			emails.forEach((email) => {
-				const row = document.createElement('tr');
-				row.className = email.read ? 'read' : 'unread';
-
-				row.innerHTML = `
-                    <td>${email.sender}</td>
-                    <td>${email.subject}</td>
-                    <td>${email.timestamp}</td>
-                    <td>
+				const emailDiv = document.createElement('div');
+				emailDiv.className = `email-item d-flex justify-content-between align-items-center p-3 ${
+					email.read ? 'read' : 'unread'
+				}`;
+				emailDiv.innerHTML = `
+                    <div class="email-content">
+                        <div class="email-header">
+                            <strong>${
+								mailbox === 'sent'
+									? `To: ${email.recipients.join(', ')}`
+									: `From: ${email.sender}`
+							}</strong>
+                            <span class="mx-2">·</span>
+                            <span class="text-muted">${email.timestamp}</span>
+                        </div>
+                        <div class="email-subject mt-1">
+                            ${email.subject || '(No subject)'}
+                        </div>
+                    </div>
+                    <div class="email-actions">
                         <button class="btn btn-sm btn-outline-primary read-btn">
-                            ${email.read ? 'Mark Unread' : 'Mark Read'}
+                            ${
+								email.read
+									? '<i class="fas fa-envelope-open"></i>'
+									: '<i class="fas fa-envelope"></i>'
+							}
                         </button>
                         ${
-							mailbox === 'sent'
-								? ''
-								: `
-                            <button class="btn btn-sm btn-outline-primary archive-btn">
-                                ${email.archived ? 'Unarchive' : 'Archive'}
+							mailbox !== 'sent'
+								? `
+                            <button class="btn btn-sm btn-outline-secondary archive-btn ms-2">
+                                ${
+									email.archived
+										? '<i class="fas fa-inbox"></i>'
+										: '<i class="fas fa-archive"></i>'
+								}
                             </button>
                         `
+								: ''
 						}
-                    </td>
+                    </div>
                 `;
 
+				// Add hover effect
+				emailDiv.style.cursor = 'pointer';
+				emailDiv.style.transition = 'background-color 0.2s';
+
 				// Add click handler to view email
-				const cells = row.querySelectorAll('td:not(:last-child)');
-				cells.forEach((cell) => {
-					cell.addEventListener('click', () => view_email(email.id));
+				emailDiv.addEventListener('click', (e) => {
+					if (!e.target.matches('button') && !e.target.matches('i')) {
+						view_email(email.id);
+					}
 				});
 
-				// Add read/unread button handler
-				row.querySelector('.read-btn').addEventListener(
-					'click',
-					(e) => {
+				// Add button handlers
+				emailDiv
+					.querySelector('.read-btn')
+					.addEventListener('click', (e) => {
 						e.stopPropagation();
-						fetch(`/emails/${email.id}`, {
-							method: 'PUT',
-							body: JSON.stringify({
-								read: !email.read,
-							}),
-							headers: {
-								'Content-Type': 'application/json',
-							},
-						}).then(() => load_mailbox(mailbox));
-					}
-				);
+						toggle_read(email.id, email.read);
+					});
 
-				// Add archive button handler if not in sent mailbox
 				if (mailbox !== 'sent') {
-					row.querySelector('.archive-btn').addEventListener(
-						'click',
-						(e) => {
+					emailDiv
+						.querySelector('.archive-btn')
+						.addEventListener('click', (e) => {
 							e.stopPropagation();
 							toggle_archive(email.id, email.archived);
-						}
-					);
+						});
 				}
 
-				tbody.append(row);
+				emailList.append(emailDiv);
 			});
 		});
 }
