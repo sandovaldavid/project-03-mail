@@ -122,8 +122,10 @@ def email(request, email_id):
 
 
 def login_view(request):
-    if request.method == "POST":
+    if request.user.is_authenticated:
+        return HttpResponseRedirect(reverse("index"))
 
+    if request.method == "POST":
         # Attempt to sign user in
         email = request.POST["email"]
         password = request.POST["password"]
