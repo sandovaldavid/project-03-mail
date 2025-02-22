@@ -1,17 +1,37 @@
-document.addEventListener('DOMContentLoaded', function () {
-	// Use buttons to toggle between views
-	document
-		.querySelector('#inbox')
-		.addEventListener('click', () => load_mailbox('inbox'));
-	document
-		.querySelector('#sent')
-		.addEventListener('click', () => load_mailbox('sent'));
-	document
-		.querySelector('#archived')
-		.addEventListener('click', () => load_mailbox('archive'));
-	document.querySelector('#compose').addEventListener('click', compose_email);
+const VIEWS = {
+	EMAILS: 'emails-view',
+	COMPOSE: 'compose-view',
+};
 
-	// By default, load the inbox
+document.addEventListener('DOMContentLoaded', function () {
+	console.log('DOM loaded'); // Debug log
+
+	const emailsView = document.querySelector('#emails-view');
+	const composeView = document.querySelector('#compose-view');
+
+	if (!emailsView || !composeView) {
+		console.error('Required view elements not found!');
+		return;
+	}
+
+	// Use buttons to toggle between views
+	document.querySelector('#inbox').addEventListener('click', () => {
+		load_mailbox('inbox');
+	});
+
+	document.querySelector('#sent').addEventListener('click', () => {
+		load_mailbox('sent');
+	});
+
+	document.querySelector('#archived').addEventListener('click', () => {
+		load_mailbox('archive');
+	});
+
+	document.querySelector('#compose').addEventListener('click', () => {
+		compose_email();
+	});
+
+	// By default, load the inbox and set it as active
 	load_mailbox('inbox');
 
 	// Add submit handler to compose form
@@ -55,9 +75,11 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function compose_email() {
-	// Show compose view and hide other views
-	document.querySelector('#emails-view').style.display = 'none';
-	document.querySelector('#compose-view').style.display = 'block';
+	// Hide all views first
+	hideAllViews();
+
+	// Show compose view
+	document.querySelector('#' + VIEWS.COMPOSE).style.display = 'block';
 
 	// Clear out composition fields
 	document.querySelector('#compose-recipients').value = '';
@@ -66,18 +88,27 @@ function compose_email() {
 }
 
 function load_mailbox(mailbox) {
-	// Show the mailbox and hide other views
-	document.querySelector('#emails-view').style.display = 'block';
-	document.querySelector('#compose-view').style.display = 'none';
+	// Hide all views first
+	hideAllViews();
+
+	// Show emails view
+	const emailsView = document.querySelector('#' + VIEWS.EMAILS);
+	showView(VIEWS.EMAILS);
+
+	// Add console.log for debugging
+	console.log('Loading mailbox:', mailbox);
+	console.log('Emails view element:', emailsView);
 
 	// Show the mailbox name with styling
-	document.querySelector('#emails-view').innerHTML = `
+	emailsView.innerHTML = `
         <h3 class="mb-3">${
 			mailbox.charAt(0).toUpperCase() + mailbox.slice(1)
 		}</h3>
-        <div class="email-list">
-        </div>
+        <div class="email-list"></div>
     `;
+
+	// Add active state to current mailbox button
+	updateActiveButton(mailbox);
 
 	// Fetch emails for the mailbox
 	fetch(`/emails/${mailbox}`)
@@ -226,6 +257,20 @@ function toggle_read(email_id, read) {
 	}).then(() => load_mailbox('inbox'));
 }
 
+function hideAllViews() {
+	Object.values(VIEWS).forEach((viewId) => {
+		const view = document.querySelector('#' + viewId);
+		view.classList.remove('show');
+		view.style.display = 'none';
+	});
+}
+
+function showView(viewId) {
+	const view = document.querySelector('#' + viewId);
+	view.classList.add('show');
+	view.style.display = 'block';
+}
+
 // Add new helper function for replying to emails
 function reply_to_email(email) {
 	// Show compose view
@@ -267,4 +312,18 @@ function toggle_archive(email_id, archived) {
 	}).then(() => {
 		load_mailbox('inbox');
 	});
+}
+
+function updateActiveButton(currentView) {
+	// Remove active class from all buttons
+	['inbox', 'sent', 'archived', 'compose'].forEach((id) => {
+		const button = document.querySelector('#' + id);
+		button.classList.remove('active');
+	});
+
+	// Add active class to current button
+	const activeButton = document.querySelector('#' + currentView);
+	if (activeButton) {
+		activeButton.classList.add('active');
+	}
 }
