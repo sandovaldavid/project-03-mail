@@ -4,79 +4,92 @@ const VIEWS = {
 };
 
 document.addEventListener('DOMContentLoaded', function () {
-	const emailsView = document.querySelector('#emails-view');
-	const composeView = document.querySelector('#compose-view');
+	// Add click handlers for navigation buttons
+	document
+		.querySelector('#inbox')
+		.addEventListener('click', () => load_mailbox('inbox'));
+	document
+		.querySelector('#sent')
+		.addEventListener('click', () => load_mailbox('sent'));
+	document
+		.querySelector('#archived')
+		.addEventListener('click', () => load_mailbox('archive'));
+	document.querySelector('#compose').addEventListener('click', compose_email);
 
-	if (!emailsView || !composeView) {
-		console.error('Required view elements not found!');
+	// By default, load the inbox
+	load_mailbox('inbox');
+});
+
+document.querySelector('#compose-form').onsubmit = function (event) {
+	event.preventDefault();
+
+	// Get form values
+	const recipients = document.querySelector('#compose-recipients').value;
+	const subject = document.querySelector('#compose-subject').value;
+	const body = document.querySelector('#compose-body').value;
+
+	// Validate form
+	const errors = validateEmailForm(recipients, subject, body);
+
+	// Remove any existing error messages
+	const existingError = document.querySelector('.compose-error');
+	if (existingError) {
+		existingError.remove();
+	}
+
+	// If there are errors, display them and return
+	if (errors.length > 0) {
+		const errorDiv = document.createElement('div');
+		errorDiv.className = 'alert alert-danger compose-error';
+		errorDiv.innerHTML = `
+            <strong>Please correct the following errors:</strong>
+            <ul class="mb-0">
+                ${errors.map((error) => `<li>${error}</li>`).join('')}
+            </ul>
+        `;
+		document.querySelector('#compose-form').prepend(errorDiv);
 		return;
 	}
 
-	// Use buttons to toggle between views
-	document.querySelector('#inbox').addEventListener('click', () => {
-		load_mailbox('inbox');
-	});
-
-	document.querySelector('#sent').addEventListener('click', () => {
-		load_mailbox('sent');
-	});
-
-	document.querySelector('#archived').addEventListener('click', () => {
-		load_mailbox('archive');
-	});
-
-	document.querySelector('#compose').addEventListener('click', () => {
-		compose_email();
-	});
-
-	// By default, load the inbox and set it as active
-	load_mailbox('inbox');
-
-	// Add submit handler to compose form
-	document.querySelector('#compose-form').onsubmit = function (event) {
-		event.preventDefault();
-
-		// Get form values
-		const recipients = document.querySelector('#compose-recipients').value;
-		const subject = document.querySelector('#compose-subject').value;
-		const body = document.querySelector('#compose-body').value;
-
-		// Send email using fetch
-		fetch('/emails', {
-			method: 'POST',
-			body: JSON.stringify({
-				recipients: recipients,
-				subject: subject,
-				body: body,
-			}),
-			headers: {
-				'Content-Type': 'application/json',
-			},
+	// Send email using fetch
+	fetch('/emails', {
+		method: 'POST',
+		body: JSON.stringify({
+			recipients: recipients,
+			subject: subject,
+			body: body,
+		}),
+		headers: {
+			'Content-Type': 'application/json',
+		},
+	})
+		.then((response) => {
+			if (!response.ok) {
+				return response.json().then((data) => {
+					const errorDiv = document.createElement('div');
+					errorDiv.className = 'alert alert-danger compose-error';
+					errorDiv.textContent = data.error;
+					document.querySelector('#compose-form').prepend(errorDiv);
+					throw new Error(data.error);
+				});
+			}
+			return response.json();
 		})
-			.then((response) => {
-				if (!response.ok) {
-					return response.json().then((data) => {
-						console.error('Error:', data.error);
-						throw new Error(data.error);
-					});
-				}
-				return response.json();
-			})
-			.then((result) => {
-				load_mailbox('sent');
-			})
-			.catch((error) => {
-				console.error('Error:', error);
-			});
-	};
-});
+		.then((result) => {
+			load_mailbox('sent');
+		})
+		.catch((error) => {
+			console.error('Error:', error);
+		});
+};
 
 function compose_email() {
 	// Hide all views first
 	hideAllViews();
 
-	// Show compose view
-	document.querySelector('#' + VIEWS.COMPOSE).style.display = 'block';
+	// Show compose view and update active state
+	showView(VIEWS.COMPOSE);
+	updateActiveButton('compose');
 
 	// Clear out composition fields
 	document.querySelector('#compose-recipients').value = '';
@@ -92,16 +105,16 @@ function load_mailbox(mailbox) {
 	const emailsView = document.querySelector('#' + VIEWS.EMAILS);
 	showView(VIEWS.EMAILS);
 
-	// Show the mailbox name
+	// Update active button
+	updateActiveButton(mailbox);
+
+	// Show the mailbox name and create container
 	emailsView.innerHTML = `
         <h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>
         <div class="email-list"></div>
     `;
 
-	// Add active state to current mailbox button
-	updateActiveButton(mailbox);
-
-	// Fetch emails for the mailbox
+	// Fetch and display emails
 	fetch(`/emails/${mailbox}`)
 		.then((response) => response.json())
 		.then((emails) => {
@@ -276,16 +289,15 @@ function toggle_archive(email_id, archived) {
 }
 
 function hideAllViews() {
+	// Hide all views first
 	Object.values(VIEWS).forEach((viewId) => {
 		const view = document.querySelector('#' + viewId);
-		view.classList.remove('show');
 		view.style.display = 'none';
 	});
 }
 
 function showView(viewId) {
 	const view = document.querySelector('#' + viewId);
-	view.classList.add('show');
 	view.style.display = 'block';
 }
 
@@ -362,4 +374,36 @@ function toggle_read(email_id, read) {
 			console.error('Error:', error);
 			button.disabled = false;
 		});
+}
+
+// helper function for validation
+function validateEmailForm(recipients, subject, body) {
+	const errors = [];
+
+	// Validate recipients
+	if (!recipients.trim()) {
+		errors.push('Recipients field is required');
+	} else {
+		// Check email format for each recipient
+		const emailList = recipients.split(',').map((email) => email.trim());
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+		emailList.forEach((email) => {
+			if (!emailRegex.test(email)) {
+				errors.push(`Invalid email format: ${email}`);
+			}
+		});
+	}
+
+	// Validate subject
+	if (!subject.trim()) {
+		errors.push('Subject field is required');
+	}
+
+	// Validate body
+	if (!body.trim()) {
+		errors.push('Email body is required');
+	}
+
+	return errors;
 }
