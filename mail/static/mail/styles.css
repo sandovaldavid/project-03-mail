@@ -48,30 +48,22 @@ tr:hover {
 }
 
 .email-list {
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    display: block;
-    width: 100%;
+	border: 1px solid #dee2e6;
+	border-radius: 4px;
+	display: block;
+	width: 100%;
 }
 
 .email-item {
-    border-bottom: 1px solid #dee2e6;
-    padding: 15px;
-    display: flex !important;
-    align-items: center;
-    width: 100%;
+	border-bottom: 1px solid #dee2e6;
+	padding: 15px;
+	display: flex !important;
+	align-items: center;
+	width: 100%;
 }
 
 .email-item:last-child {
 	border-bottom: none;
-}
-
-.email-item.unread {
-	background-color: white;
-}
-
-.email-item.read {
-	background-color: #f8f9fa;
 }
 
 .email-item:hover {
@@ -114,7 +106,7 @@ tr:hover {
 #emails-view,
 #compose-view {
 	opacity: 1;
-    display: none;
+	display: none;
 }
 
 #emails-view.show,
@@ -125,4 +117,82 @@ tr:hover {
 /* Container styling */
 .view-container {
 	margin-top: 20px;
+}
+
+/* Archive button styles */
+.archive-btn {
+	transition: all 0.3s ease;
+	min-width: 100px;
+}
+
+.archive-btn:hover {
+	transform: scale(1.05);
+}
+
+.archive-btn .button-text {
+	font-size: 0.875rem;
+}
+
+/* Email actions container */
+.email-actions {
+	display: flex;
+	gap: 0.5rem;
+	align-items: center;
+}
+
+/* Button icons */
+.btn i {
+	transition: transform 0.2s ease;
+}
+
+.btn:hover i {
+	transform: scale(1.1);
+}
+
+/* Archived email style */
+.email-item.archived {
+	border-left: 3px solid #28a745;
+}
+
+/* Unarchived email style */
+.email-item:not(.archived) {
+	border-left: 3px solid transparent;
+}
+
+/* Read/Unread button styles */
+.read-btn {
+	transition: all 0.2s ease;
+	width: 38px;
+	background-color: transparent;
+}
+
+.read-btn:hover {
+	background-color: #e9ecef !important;
+	border-color: #0d6efd !important;
+	color: #0d6efd !important;
+}
+
+.read-btn:disabled {
+	opacity: 0.65;
+	cursor: not-allowed;
+}
+
+/* Icon styles */
+.read-btn i {
+	transition: transform 0.2s ease;
+}
+
+.read-btn:hover i {
+	transform: scale(1.1);
+}
+
+/* Email item styles */
+.email-item.unread {
+	background-color: white;
+	border-left: 3px solid #0d6efd;
+}
+
+.email-item.read {
+	background-color: #f8f9fa;
+	border-left: 3px solid transparent;
 }
