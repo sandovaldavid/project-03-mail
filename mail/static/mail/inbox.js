@@ -1,8 +1,14 @@
 document.addEventListener('DOMContentLoaded', function () {
 	// Use buttons to toggle between views
-	document.querySelector('#inbox').addEventListener('click', () => load_mailbox('inbox'));
-	document.querySelector('#sent').addEventListener('click', () => load_mailbox('sent'));
-	document.querySelector('#archived').addEventListener('click', () => load_mailbox('archive'));
+	document
+		.querySelector('#inbox')
+		.addEventListener('click', () => load_mailbox('inbox'));
+	document
+		.querySelector('#sent')
+		.addEventListener('click', () => load_mailbox('sent'));
+	document
+		.querySelector('#archived')
+		.addEventListener('click', () => load_mailbox('archive'));
 	document.querySelector('#compose').addEventListener('click', compose_email);
 
 	// By default, load the inbox
@@ -117,25 +123,31 @@ function load_mailbox(mailbox) {
 				});
 
 				// Add read/unread button handler
-				row.querySelector('.read-btn').addEventListener('click', (e) => {
-					e.stopPropagation();
-					fetch(`/emails/${email.id}`, {
-						method: 'PUT',
-						body: JSON.stringify({
-							read: !email.read,
-						}),
-						headers: {
-							'Content-Type': 'application/json',
-						},
-					}).then(() => load_mailbox(mailbox));
-				});
+				row.querySelector('.read-btn').addEventListener(
+					'click',
+					(e) => {
+						e.stopPropagation();
+						fetch(`/emails/${email.id}`, {
+							method: 'PUT',
+							body: JSON.stringify({
+								read: !email.read,
+							}),
+							headers: {
+								'Content-Type': 'application/json',
+							},
+						}).then(() => load_mailbox(mailbox));
+					}
+				);
 
 				// Add archive button handler if not in sent mailbox
 				if (mailbox !== 'sent') {
-					row.querySelector('.archive-btn').addEventListener('click', (e) => {
-						e.stopPropagation();
-						toggle_archive(email.id, email.archived);
-					});
+					row.querySelector('.archive-btn').addEventListener(
+						'click',
+						(e) => {
+							e.stopPropagation();
+							toggle_archive(email.id, email.archived);
+						}
+					);
 				}
 
 				tbody.append(row);
@@ -147,10 +159,6 @@ function view_email(email_id) {
 	fetch(`/emails/${email_id}`)
 		.then((response) => response.json())
 		.then((email) => {
-			document.querySelector('#emails-view').style.display = 'block';
-			document.querySelector('#compose-view').style.display = 'none';
-
-			// Display email content with buttons for replying, archiving, and marking as read/unread
 			document.querySelector('#emails-view').innerHTML = `
                 <div class="email-detail card">
                     <div class="card-header">
@@ -159,40 +167,35 @@ function view_email(email_id) {
                     </div>
                     <div class="card-body">
                         <div class="email-metadata mb-3">
-                            <p class="mb-1"><strong>From:</strong> ${email.sender}</p>
-                            <p class="mb-1"><strong>To:</strong> ${email.recipients.join(', ')}</p>
+                            <p class="mb-1"><strong>From:</strong> ${
+								email.sender
+							}</p>
+                            <p class="mb-1"><strong>To:</strong> ${email.recipients.join(
+								', '
+							)}</p>
                         </div>
                         
                         <div class="email-actions mb-3">
                             <button class="btn btn-sm btn-outline-primary" id="reply-btn">
-                                <i class="fas fa-reply"></i> Reply
-                            </button>
-                            <button class="btn btn-sm btn-outline-primary" id="archive-btn">
-                                ${email.archived ? 'Unarchive' : 'Archive'}
-                            </button>
-                            <button class="btn btn-sm btn-outline-secondary" id="read-btn">
-                                Mark as ${email.read ? 'Unread' : 'Read'}
+                                Reply
                             </button>
                         </div>
                         
-                        <hr>
                         <div class="email-body">
-                            ${email.body.replace(/\n/g, '<br>')}
+                            ${email.body}
                         </div>
                     </div>
                 </div>
             `;
 
-			// Add event listeners for buttons
-			document.querySelector('#archive-btn').addEventListener('click', () => toggle_archive(email.id, email.archived));
+			// Add reply button event listener
+			document
+				.querySelector('#reply-btn')
+				.addEventListener('click', () => reply_to_email(email));
 
-			document.querySelector('#read-btn').addEventListener('click', () => toggle_read(email.id, email.read));
-
-			document.querySelector('#reply-btn').addEventListener('click', () => reply_to_email(email));
-
-			// Mark email as read
+			// Mark email as read if it isn't already
 			if (!email.read) {
-				mark_email_as_read(email.id);
+				mark_email_as_read(email_id);
 			}
 		});
 }
@@ -217,8 +220,14 @@ function reply_to_email(email) {
 
 	// Pre-fill composition fields
 	document.querySelector('#compose-recipients').value = email.sender;
-	document.querySelector('#compose-subject').value = email.subject.startsWith('Re: ') ? email.subject : `Re: ${email.subject}`;
-	document.querySelector('#compose-body').value = `\n\nOn ${email.timestamp} ${email.sender} wrote:\n${email.body}`;
+	document.querySelector('#compose-subject').value = email.subject.startsWith(
+		'Re: '
+	)
+		? email.subject
+		: `Re: ${email.subject}`;
+	document.querySelector(
+		'#compose-body'
+	).value = `\n\nOn ${email.timestamp} ${email.sender} wrote:\n${email.body}`;
 }
 
 // Add new helper function for toggling read status
@@ -241,8 +250,14 @@ function reply_to_email(email) {
 
 	// Pre-fill composition fields
 	document.querySelector('#compose-recipients').value = email.sender;
-	document.querySelector('#compose-subject').value = email.subject.startsWith('Re: ') ? email.subject : `Re: ${email.subject}`;
-	document.querySelector('#compose-body').value = `\n\nOn ${email.timestamp} ${email.sender} wrote:\n${email.body}`;
+	document.querySelector('#compose-subject').value = email.subject.startsWith(
+		'Re: '
+	)
+		? email.subject
+		: `Re: ${email.subject}`;
+	document.querySelector(
+		'#compose-body'
+	).value = `\n\nOn ${email.timestamp} ${email.sender} wrote:\n${email.body}`;
 }
 
 function mark_email_as_read(email_id) {
