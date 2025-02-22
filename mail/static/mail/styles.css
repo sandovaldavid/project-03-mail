@@ -1,100 +1,128 @@
 textarea {
-    min-height: 400px;
+	min-height: 400px;
 }
 
 .unread {
-    background-color: white;
-    cursor: pointer;
+	background-color: white;
+	cursor: pointer;
 }
 
 .read {
-    background-color: #e9ecef;
-    cursor: pointer;
+	background-color: #e9ecef;
+	cursor: pointer;
 }
 
 tr:hover {
-    background-color: #f8f9fa;
+	background-color: #f8f9fa;
 }
 
 /* Full Mail View */
 
 .email-detail {
-    margin: 20px 0;
+	margin: 20px 0;
 }
 
 .email-metadata {
-    background-color: #f8f9fa;
-    padding: 15px;
-    border-radius: 4px;
+	background-color: #f8f9fa;
+	padding: 15px;
+	border-radius: 4px;
 }
 
 .email-actions {
-    padding: 10px 0;
+	padding: 10px 0;
 }
 
 .email-body {
-    white-space: pre-line;
-    padding: 15px;
+	white-space: pre-line;
+	padding: 15px;
 }
 
 .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
 }
 
 .btn {
-    margin-right: 5px;
+	margin-right: 5px;
 }
 
 .email-list {
     border: 1px solid #dee2e6;
     border-radius: 4px;
+    display: block;
+    width: 100%;
 }
 
 .email-item {
     border-bottom: 1px solid #dee2e6;
     padding: 15px;
+    display: flex !important;
+    align-items: center;
+    width: 100%;
 }
 
 .email-item:last-child {
-    border-bottom: none;
+	border-bottom: none;
 }
 
 .email-item.unread {
-    background-color: white;
+	background-color: white;
 }
 
 .email-item.read {
-    background-color: #f8f9fa;
+	background-color: #f8f9fa;
 }
 
 .email-item:hover {
-    background-color: #e9ecef;
+	background-color: #e9ecef;
 }
 
 .email-content {
-    flex-grow: 1;
-    margin-right: 15px;
+	flex-grow: 1;
+	margin-right: 15px;
 }
 
 .email-header {
-    display: flex;
-    align-items: center;
+	display: flex;
+	align-items: center;
 }
 
 .email-subject {
-    color: #666;
+	color: #666;
 }
 
 .email-actions {
-    white-space: nowrap;
+	white-space: nowrap;
 }
 
 .btn-sm {
-    padding: 0.25rem 0.5rem;
+	padding: 0.25rem 0.5rem;
 }
 
 .fas {
-    font-size: 0.875rem;
+	font-size: 0.875rem;
+}
+
+/* Navigation buttons */
+.btn-outline-primary.active {
+	background-color: #007bff;
+	color: white;
+}
+
+/* View transitions */
+#emails-view,
+#compose-view {
+	opacity: 1;
+    display: none;
+}
+
+#emails-view.show,
+#compose-view.show {
+	display: block !important;
+}
+
+/* Container styling */
+.view-container {
+	margin-top: 20px;
 }
