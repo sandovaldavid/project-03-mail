@@ -109,11 +109,6 @@ tr:hover {
 	display: none;
 }
 
-#emails-view.show,
-#compose-view.show {
-	display: block !important;
-}
-
 /* Container styling */
 .view-container {
 	margin-top: 20px;
@@ -195,4 +190,36 @@ tr:hover {
 .email-item.read {
 	background-color: #f8f9fa;
 	border-left: 3px solid transparent;
+}
+
+/* Form validation styles */
+.compose-error {
+	margin-bottom: 1rem;
+	animation: fadeIn 0.3s ease-in;
+}
+
+.compose-error ul {
+	padding-left: 1.5rem;
+	margin-top: 0.5rem;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(-10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Form field styles */
+.form-control.error {
+	border-color: #dc3545;
+}
+
+.form-control:focus {
+	box-shadow: none;
+	border-color: #80bdff;
 }
