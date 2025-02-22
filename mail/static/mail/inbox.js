@@ -4,7 +4,6 @@ const VIEWS = {
 };
 
 document.addEventListener('DOMContentLoaded', function () {
-	console.log('DOM loaded'); // Debug log
 
 	const emailsView = document.querySelector('#emails-view');
 	const composeView = document.querySelector('#compose-view');
@@ -65,7 +64,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				return response.json();
 			})
 			.then((result) => {
-				console.log('Success:', result);
 				load_mailbox('sent');
 			})
 			.catch((error) => {
@@ -94,10 +92,6 @@ function load_mailbox(mailbox) {
 	// Show emails view
 	const emailsView = document.querySelector('#' + VIEWS.EMAILS);
 	showView(VIEWS.EMAILS);
-
-	// Add console.log for debugging
-	console.log('Loading mailbox:', mailbox);
-	console.log('Emails view element:', emailsView);
 
 	// Show the mailbox name with styling
 	emailsView.innerHTML = `
