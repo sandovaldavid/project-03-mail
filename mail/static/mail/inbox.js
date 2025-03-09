@@ -55,30 +55,11 @@ document.addEventListener('DOMContentLoaded', function () {
 			// Only save if at least one field has content
 			if (recipients.trim() || subject.trim() || body.trim()) {
 				const draft = saveDraft(recipients, subject, body);
-
-				// Show success message
-				const successDiv = document.createElement('div');
-				successDiv.className = 'alert alert-success compose-success';
-				successDiv.innerHTML = `
-                <i class="fas fa-check-circle mr-2"></i>
-                Draft saved successfully!
-            `;
-
-				// Remove existing messages
-				const existingSuccess =
-					document.querySelector('.compose-success');
-				if (existingSuccess) {
-					existingSuccess.remove();
-				}
-
-				document.querySelector('#compose-form').prepend(successDiv);
-
-				// Auto-remove success message after 3 seconds
-				setTimeout(() => {
-					if (successDiv.parentElement) {
-						successDiv.remove();
-					}
-				}, 3000);
+				createAutoDisappearingAlert(
+					'success',
+					'<i class="fas fa-check-circle mr-2"></i> Draft saved successfully!',
+					document.querySelector('#compose-form')
+				);
 			} else {
 				alert('Cannot save empty draft');
 			}
@@ -108,15 +89,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
 			// If there are errors, display them and return
 			if (errors.length > 0) {
-				const errorDiv = document.createElement('div');
-				errorDiv.className = 'alert alert-danger compose-error';
-				errorDiv.innerHTML = `
-					<strong>Please correct the following errors:</strong>
-					<ul class="mb-0">
-						${errors.map((error) => `<li>${error}</li>`).join('')}
-					</ul>
-				`;
-				document.querySelector('#compose-form').prepend(errorDiv);
+				const errorHTML = `
+        <strong>Please correct the following errors:</strong>
+        <ul class="mb-0">
+            ${errors.map((error) => `<li>${error}</li>`).join('')}
+        </ul>
+    `;
+				createAutoDisappearingAlert(
+					'danger',
+					errorHTML,
+					document.querySelector('#compose-form')
+				);
 				return;
 			}
 
@@ -165,11 +148,11 @@ document.addEventListener('DOMContentLoaded', function () {
 				})
 				.then((data) => {
 					// Display success message
-					const successDiv = document.createElement('div');
-					successDiv.className = 'alert alert-success';
-					successDiv.innerHTML =
-						'<i class="fas fa-check-circle mr-2"></i> Email sent successfully!';
-					document.querySelector('#compose-form').prepend(successDiv);
+					const successDiv = createAutoDisappearingAlert(
+						'success',
+						'<i class="fas fa-check-circle mr-2"></i> Email sent successfully!',
+						document.querySelector('#compose-form')
+					);
 
 					// If this was a draft being sent, delete the draft
 					const draftId =
@@ -189,12 +172,12 @@ document.addEventListener('DOMContentLoaded', function () {
 					console.error('Error sending email:', error);
 
 					// Display error message
-					const errorDiv = document.createElement('div');
-					errorDiv.className = 'alert alert-danger compose-error';
-					errorDiv.textContent =
+					createAutoDisappearingAlert(
+						'danger',
 						error.message ||
-						'Network error occurred. Please try again.';
-					document.querySelector('#compose-form').prepend(errorDiv);
+							'Network error occurred. Please try again.',
+						document.querySelector('#compose-form')
+					);
 				});
 		});
 	} else {
@@ -505,6 +488,17 @@ function toggle_archive(email_id, archived) {
 			button.innerHTML = `<i class="fas fa-check"></i> ${
 				archived ? 'Unarchived' : 'Archived'
 			}`;
+
+			// Show a success message that will auto-dismiss
+			const mailboxView = document.querySelector('#' + VIEWS.EMAILS);
+			createAutoDisappearingAlert(
+				'success',
+				`<i class="fas fa-check-circle mr-2"></i> Email ${
+					archived ? 'unarchived' : 'archived'
+				} successfully!`,
+				mailboxView
+			);
+
 			setTimeout(() => load_mailbox('inbox'), 1000);
 		})
 		.catch((error) => {
@@ -665,4 +659,26 @@ function deleteDraft(draftId) {
 	let drafts = getDrafts();
 	drafts = drafts.filter((draft) => draft.id !== draftId);
 	localStorage.setItem('emailDrafts', JSON.stringify(drafts));
+}
+
+// helper function to auto-dismiss alerts
+function createAutoDisappearingAlert(type, message, parent) {
+	// Remove any existing alerts of the same type
+	const existingAlerts = parent.querySelectorAll(`.alert-${type}`);
+	existingAlerts.forEach((alert) => alert.remove());
+
+	// Create new alert
+	const alertDiv = document.createElement('div');
+	alertDiv.className = `alert alert-${type}`;
+	alertDiv.innerHTML = message;
+	parent.prepend(alertDiv);
+
+	// Auto-remove after 5 seconds
+	setTimeout(() => {
+		if (alertDiv.parentElement) {
+			alertDiv.remove();
+		}
+	}, 5000);
+
+	return alertDiv;
 }
