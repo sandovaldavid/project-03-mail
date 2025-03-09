@@ -7,8 +7,10 @@
     <div class="row py-3 email-header-row align-items-center mb-3">
       <div class="col-md-6 mb-2 mb-md-0">
         <h2 class="app-title">
-          <i class="fas fa-envelope text-primary mr-2"></i>
-          <span class="text-primary font-weight-bold">Mail</span>
+          <a href="{% url 'index' %}" class="text-decoration-none text-primary">
+            <i class="fas fa-envelope text-primary mr-2"></i>
+            <span class="text-primary font-weight-bold">Mail</span>
+          </a>
           <small class="text-muted ml-2">{{ request.user.email }}</small>
         </h2>
       </div>
