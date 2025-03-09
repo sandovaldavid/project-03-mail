@@ -20,6 +20,14 @@ document.addEventListener('DOMContentLoaded', function () {
 		draftsBtn.addEventListener('click', () => load_drafts());
 	}
 
+	document.body.addEventListener('click', function (e) {
+		if (e.target && e.target.closest('.toast-notification')) {
+			const notification = e.target.closest('.toast-notification');
+			notification.classList.remove('show');
+			setTimeout(() => notification.remove(), 300);
+		}
+	});
+
 	// By default, load the inbox
 	load_mailbox('inbox');
 });
@@ -57,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				const draft = saveDraft(recipients, subject, body);
 				createAutoDisappearingAlert(
 					'success',
-					'<i class="fas fa-check-circle mr-2"></i> Draft saved successfully!',
+					'Draft saved successfully!',
 					document.querySelector('#compose-form')
 				);
 			} else {
@@ -150,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function () {
 					// Display success message
 					const successDiv = createAutoDisappearingAlert(
 						'success',
-						'<i class="fas fa-check-circle mr-2"></i> Email sent successfully!',
+						'Email sent successfully!',
 						document.querySelector('#compose-form')
 					);
 
@@ -493,7 +501,7 @@ function toggle_archive(email_id, archived) {
 			const mailboxView = document.querySelector('#' + VIEWS.EMAILS);
 			createAutoDisappearingAlert(
 				'success',
-				`<i class="fas fa-check-circle mr-2"></i> Email ${
+				`Email ${
 					archived ? 'unarchived' : 'archived'
 				} successfully!`,
 				mailboxView
@@ -663,22 +671,82 @@ function deleteDraft(draftId) {
 
 // helper function to auto-dismiss alerts
 function createAutoDisappearingAlert(type, message, parent) {
-	// Remove any existing alerts of the same type
-	const existingAlerts = parent.querySelectorAll(`.alert-${type}`);
-	existingAlerts.forEach((alert) => alert.remove());
+	// Get or create the notification container
+	let notificationContainer = document.getElementById(
+		'notification-container'
+	);
 
-	// Create new alert
-	const alertDiv = document.createElement('div');
-	alertDiv.className = `alert alert-${type}`;
-	alertDiv.innerHTML = message;
-	parent.prepend(alertDiv);
+	if (!notificationContainer) {
+		notificationContainer = document.createElement('div');
+		notificationContainer.id = 'notification-container';
+		document.body.appendChild(notificationContainer);
+	}
+
+	// Create toast notification
+	const toast = document.createElement('div');
+	toast.className = `toast-notification alert-${type}`;
+
+	// Set icon based on type
+	let icon = '';
+	let title = '';
+
+	switch (type) {
+		case 'success':
+			icon = '<i class="fas fa-check-circle" style="color:#28a745"></i>';
+			title = 'Success';
+			break;
+		case 'danger':
+			icon =
+				'<i class="fas fa-exclamation-circle" style="color:#dc3545"></i>';
+			title = 'Error';
+			break;
+		case 'info':
+			icon = '<i class="fas fa-info-circle" style="color:#17a2b8"></i>';
+			title = 'Info';
+			break;
+		case 'warning':
+			icon =
+				'<i class="fas fa-exclamation-triangle" style="color:#ffc107"></i>';
+			title = 'Warning';
+			break;
+	}
+
+	toast.innerHTML = `
+        ${icon}
+        <div class="toast-content">
+            <div class="toast-title">${title}</div>
+            <div class="toast-message">${message}</div>
+        </div>
+        <span class="close-btn">&times;</span>
+    `;
+
+	// Add to notification container
+	notificationContainer.appendChild(toast);
+
+	// Force a reflow/repaint before adding the 'show' class
+	toast.getBoundingClientRect();
+
+	// Add show class to trigger animation
+	toast.classList.add('show');
+
+	// Add close button functionality
+	const closeBtn = toast.querySelector('.close-btn');
+	closeBtn.addEventListener('click', () => {
+		toast.classList.remove('show');
+		setTimeout(() => toast.remove(), 300);
+	});
 
 	// Auto-remove after 5 seconds
 	setTimeout(() => {
-		if (alertDiv.parentElement) {
-			alertDiv.remove();
+		if (toast.parentElement) {
+			toast.classList.remove('show');
+			setTimeout(() => {
+				if (toast.parentElement) {
+					toast.remove();
+				}
+			}, 300);
 		}
 	}, 5000);
 
-	return alertDiv;
+	return toast;
 }
