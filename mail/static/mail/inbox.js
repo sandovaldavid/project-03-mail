@@ -84,6 +84,122 @@ document.addEventListener('DOMContentLoaded', function () {
 			}
 		});
 	}
+
+	const composeForm = document.querySelector('#compose-form');
+	if (composeForm) {
+		composeForm.addEventListener('submit', function (event) {
+			event.preventDefault();
+
+			// Get form values
+			const recipients = document.querySelector(
+				'#compose-recipients'
+			).value;
+			const subject = document.querySelector('#compose-subject').value;
+			const body = document.querySelector('#compose-body').value;
+
+			// Validate form
+			const errors = validateEmailForm(recipients, subject, body);
+
+			// Remove any existing error messages
+			const existingError = document.querySelector('.compose-error');
+			if (existingError) {
+				existingError.remove();
+			}
+
+			// If there are errors, display them and return
+			if (errors.length > 0) {
+				const errorDiv = document.createElement('div');
+				errorDiv.className = 'alert alert-danger compose-error';
+				errorDiv.innerHTML = `
+					<strong>Please correct the following errors:</strong>
+					<ul class="mb-0">
+						${errors.map((error) => `<li>${error}</li>`).join('')}
+					</ul>
+				`;
+				document.querySelector('#compose-form').prepend(errorDiv);
+				return;
+			}
+
+			// Show sending indicator
+			const sendingDiv = document.createElement('div');
+			sendingDiv.className = 'alert alert-info';
+			sendingDiv.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Sending email...`;
+			document.querySelector('#compose-form').prepend(sendingDiv);
+
+			// Console log for debugging
+			console.log('Attempting to send email to:', recipients);
+
+			// Send email using fetch
+			fetch('/emails', {
+				method: 'POST',
+				body: JSON.stringify({
+					recipients: recipients,
+					subject: subject,
+					body: body,
+				}),
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			})
+				.then((response) => {
+					console.log(
+						'Server response:',
+						response.status,
+						response.statusText
+					);
+
+					// Remove sending indicator
+					sendingDiv.remove();
+
+					if (!response.ok) {
+						// Convert response to JSON and handle error
+						return response.json().then((data) => {
+							throw new Error(
+								data.error || 'Failed to send email'
+							);
+						});
+					}
+
+					// Success case - parse JSON response
+					return response.json();
+				})
+				.then((data) => {
+					// Display success message
+					const successDiv = document.createElement('div');
+					successDiv.className = 'alert alert-success';
+					successDiv.innerHTML =
+						'<i class="fas fa-check-circle mr-2"></i> Email sent successfully!';
+					document.querySelector('#compose-form').prepend(successDiv);
+
+					// If this was a draft being sent, delete the draft
+					const draftId =
+						document.querySelector('#compose-form').dataset.draftId;
+					if (draftId) {
+						deleteDraft(draftId);
+						delete document.querySelector('#compose-form').dataset
+							.draftId;
+					}
+
+					// Wait briefly to show the success message before redirecting
+					setTimeout(() => {
+						load_mailbox('sent');
+					}, 1500);
+				})
+				.catch((error) => {
+					console.error('Error sending email:', error);
+
+					// Display error message
+					const errorDiv = document.createElement('div');
+					errorDiv.className = 'alert alert-danger compose-error';
+					errorDiv.textContent =
+						error.message ||
+						'Network error occurred. Please try again.';
+					document.querySelector('#compose-form').prepend(errorDiv);
+				});
+		});
+	} else {
+		console.error('#compose-form not found in DOM');
+	}
 });
 
 function load_drafts() {
@@ -191,78 +307,6 @@ function edit_draft(draftId) {
 		document.querySelector('#compose-form').dataset.draftId = draftId;
 	}
 }
-
-// Update the compose form submit handler
-document.querySelector('#compose-form').onsubmit = function (event) {
-	event.preventDefault();
-
-	// Get form values
-	const recipients = document.querySelector('#compose-recipients').value;
-	const subject = document.querySelector('#compose-subject').value;
-	const body = document.querySelector('#compose-body').value;
-
-	// Validate form
-	const errors = validateEmailForm(recipients, subject, body);
-
-	// Remove any existing error messages
-	const existingError = document.querySelector('.compose-error');
-	if (existingError) {
-		existingError.remove();
-	}
-
-	// If there are errors, display them and return
-	if (errors.length > 0) {
-		const errorDiv = document.createElement('div');
-		errorDiv.className = 'alert alert-danger compose-error';
-		errorDiv.innerHTML = `
-            <strong>Please correct the following errors:</strong>
-            <ul class="mb-0">
-                ${errors.map((error) => `<li>${error}</li>`).join('')}
-            </ul>
-        `;
-		document.querySelector('#compose-form').prepend(errorDiv);
-		return;
-	}
-
-	// Send email using fetch
-	fetch('/emails', {
-		method: 'POST',
-		body: JSON.stringify({
-			recipients: recipients,
-			subject: subject,
-			body: body,
-		}),
-		headers: {
-			'Content-Type': 'application/json',
-		},
-	})
-		.then((response) => {
-			if (!response.ok) {
-				return response.json().then((data) => {
-					const errorDiv = document.createElement('div');
-					errorDiv.className = 'alert alert-danger compose-error';
-					errorDiv.textContent = data.error;
-					document.querySelector('#compose-form').prepend(errorDiv);
-					throw new Error(data.error);
-				});
-			}
-			return response.json();
-		})
-		.then((result) => {
-			// If this was a draft being sent, delete the draft
-			const draftId =
-				document.querySelector('#compose-form').dataset.draftId;
-			if (draftId) {
-				deleteDraft(draftId);
-				delete document.querySelector('#compose-form').dataset.draftId;
-			}
-
-			load_mailbox('sent');
-		})
-		.catch((error) => {
-			console.error('Error:', error);
-		});
-};
 
 function compose_email() {
 	// Hide all views first
