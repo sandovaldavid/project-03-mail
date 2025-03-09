@@ -15,11 +15,184 @@ document.addEventListener('DOMContentLoaded', function () {
 		.querySelector('#archived')
 		.addEventListener('click', () => load_mailbox('archive'));
 	document.querySelector('#compose').addEventListener('click', compose_email);
+	const draftsBtn = document.querySelector('#drafts');
+	if (draftsBtn) {
+		draftsBtn.addEventListener('click', () => load_drafts());
+	}
 
 	// By default, load the inbox
 	load_mailbox('inbox');
 });
 
+document.addEventListener('DOMContentLoaded', function () {
+	// Handle close compose button
+	const closeComposeBtn = document.querySelector('#close-compose');
+	if (closeComposeBtn) {
+		closeComposeBtn.addEventListener('click', () => load_mailbox('inbox'));
+	}
+
+	// Handle discard button
+	const discardBtn = document.querySelector('#discard-email');
+	if (discardBtn) {
+		discardBtn.addEventListener('click', () => {
+			if (confirm('Are you sure you want to discard this email?')) {
+				load_mailbox('inbox');
+			}
+		});
+	}
+
+	// Handle save draft button (placeholder functionality)
+	const saveDraftBtn = document.querySelector('#save-draft');
+	if (saveDraftBtn) {
+		saveDraftBtn.addEventListener('click', () => {
+			// Get current form values
+			const recipients = document.querySelector(
+				'#compose-recipients'
+			).value;
+			const subject = document.querySelector('#compose-subject').value;
+			const body = document.querySelector('#compose-body').value;
+
+			// Only save if at least one field has content
+			if (recipients.trim() || subject.trim() || body.trim()) {
+				const draft = saveDraft(recipients, subject, body);
+
+				// Show success message
+				const successDiv = document.createElement('div');
+				successDiv.className = 'alert alert-success compose-success';
+				successDiv.innerHTML = `
+                <i class="fas fa-check-circle mr-2"></i>
+                Draft saved successfully!
+            `;
+
+				// Remove existing messages
+				const existingSuccess =
+					document.querySelector('.compose-success');
+				if (existingSuccess) {
+					existingSuccess.remove();
+				}
+
+				document.querySelector('#compose-form').prepend(successDiv);
+
+				// Auto-remove success message after 3 seconds
+				setTimeout(() => {
+					if (successDiv.parentElement) {
+						successDiv.remove();
+					}
+				}, 3000);
+			} else {
+				alert('Cannot save empty draft');
+			}
+		});
+	}
+});
+
+function load_drafts() {
+	// Hide all views first
+	hideAllViews();
+
+	// Show emails view
+	const emailsView = document.querySelector('#' + VIEWS.EMAILS);
+	showView(VIEWS.EMAILS);
+
+	// Update active button
+	updateActiveButton('drafts');
+
+	// Get drafts from localStorage
+	const drafts = getDrafts();
+
+	// Show the drafts heading and create container
+	emailsView.innerHTML = `
+        <h3>Drafts</h3>
+        <div class="email-list"></div>
+    `;
+
+	const emailList = document.querySelector('.email-list');
+
+	if (drafts.length === 0) {
+		emailList.innerHTML =
+			'<div class="p-3 text-muted">No drafts available</div>';
+		return;
+	}
+
+	// Sort drafts by timestamp (newest first)
+	drafts.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+	drafts.forEach((draft) => {
+		const draftDiv = document.createElement('div');
+		draftDiv.className =
+			'email-item d-flex justify-content-between align-items-center p-3';
+		draftDiv.innerHTML = `
+            <div class="email-content">
+                <div class="email-header">
+                    <strong>To: ${
+						draft.recipients || '(No recipients)'
+					}</strong>
+                    <span class="mx-2">·</span>
+                    <span class="text-muted">${draft.timestamp}</span>
+                </div>
+                <div class="email-subject mt-1">
+                    ${draft.subject || '(No subject)'}
+                </div>
+            </div>
+            <div class="email-actions">
+                <button class="btn btn-sm btn-outline-primary edit-btn" title="Edit Draft">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger delete-btn ms-2" title="Delete Draft">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+
+		// Add hover effect
+		draftDiv.style.cursor = 'pointer';
+		draftDiv.style.transition = 'background-color 0.2s';
+
+		// Add click handler to edit draft
+		draftDiv.addEventListener('click', (e) => {
+			if (!e.target.matches('button') && !e.target.matches('i')) {
+				edit_draft(draft.id);
+			}
+		});
+
+		// Add button handlers
+		draftDiv.querySelector('.edit-btn').addEventListener('click', (e) => {
+			e.stopPropagation();
+			edit_draft(draft.id);
+		});
+
+		draftDiv.querySelector('.delete-btn').addEventListener('click', (e) => {
+			e.stopPropagation();
+			if (confirm('Are you sure you want to delete this draft?')) {
+				deleteDraft(draft.id);
+				load_drafts(); // Reload drafts view
+			}
+		});
+
+		emailList.append(draftDiv);
+	});
+}
+
+function edit_draft(draftId) {
+	const drafts = getDrafts();
+	const draft = drafts.find((d) => d.id === draftId);
+
+	if (draft) {
+		// Show compose view
+		compose_email();
+
+		// Fill in the draft data
+		document.querySelector('#compose-recipients').value =
+			draft.recipients || '';
+		document.querySelector('#compose-subject').value = draft.subject || '';
+		document.querySelector('#compose-body').value = draft.body || '';
+
+		// Store the draft ID to delete it if sent
+		document.querySelector('#compose-form').dataset.draftId = draftId;
+	}
+}
+
+// Update the compose form submit handler
 document.querySelector('#compose-form').onsubmit = function (event) {
 	event.preventDefault();
 
@@ -76,6 +249,14 @@ document.querySelector('#compose-form').onsubmit = function (event) {
 			return response.json();
 		})
 		.then((result) => {
+			// If this was a draft being sent, delete the draft
+			const draftId =
+				document.querySelector('#compose-form').dataset.draftId;
+			if (draftId) {
+				deleteDraft(draftId);
+				delete document.querySelector('#compose-form').dataset.draftId;
+			}
+
 			load_mailbox('sent');
 		})
 		.catch((error) => {
@@ -406,4 +587,38 @@ function validateEmailForm(recipients, subject, body) {
 	}
 
 	return errors;
+}
+
+// functions for draft management
+function saveDraft(recipients, subject, body) {
+	const drafts = getDrafts();
+	const draftId = Date.now().toString(); // timestamp as unique ID
+
+	// Create new draft object
+	const draft = {
+		id: draftId,
+		recipients: recipients,
+		subject: subject,
+		body: body,
+		timestamp: new Date().toLocaleString(),
+	};
+
+	// Add to drafts array
+	drafts.push(draft);
+
+	// Save to localStorage
+	localStorage.setItem('emailDrafts', JSON.stringify(drafts));
+
+	return draft;
+}
+
+function getDrafts() {
+	const draftsString = localStorage.getItem('emailDrafts');
+	return draftsString ? JSON.parse(draftsString) : [];
+}
+
+function deleteDraft(draftId) {
+	let drafts = getDrafts();
+	drafts = drafts.filter((draft) => draft.id !== draftId);
+	localStorage.setItem('emailDrafts', JSON.stringify(drafts));
 }
