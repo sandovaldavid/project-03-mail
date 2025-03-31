@@ -578,9 +578,8 @@ function toggle_archive(email_id, archived) {
 		},
 	})
 		.then(() => {
-			button.innerHTML = `<i class="fas fa-check"></i> ${
-				archived ? 'Unarchived' : 'Archived'
-			}`;
+			// Update the button appearance
+			handleArchiveStateChange(button, !archived);
 
 			// Show a success message that will auto-dismiss
 			const mailboxView = document.querySelector('#' + VIEWS.EMAILS);
@@ -595,7 +594,39 @@ function toggle_archive(email_id, archived) {
 		.catch((error) => {
 			console.error('Error:', error);
 			button.disabled = false;
+
+			// Show error notification
+			const mailboxView = document.querySelector('#' + VIEWS.EMAILS);
+			createAutoDisappearingAlert(
+				'danger',
+				`Failed to ${
+					archived ? 'unarchive' : 'archive'
+				} email. Please try again.`,
+				mailboxView
+			);
 		});
+}
+
+// New helper function to handle archive state changes
+function handleArchiveStateChange(button, archived) {
+	// Update button appearance based on archived state
+	button.innerHTML = `<i class="fas fa-${
+		archived ? 'inbox' : 'archive'
+	}"></i> <span class="button-text ms-1">${
+		archived ? 'Unarchive' : 'Archive'
+	}</span>`;
+	button.title = archived ? 'Move to inbox' : 'Archive';
+	button.classList.toggle('btn-outline-success', archived);
+	button.classList.toggle('btn-outline-secondary', !archived);
+
+	// Update the email item to reflect archived state
+	const emailItem = button.closest('.email-item');
+	if (emailItem) {
+		emailItem.classList.toggle('archived', archived);
+	}
+
+	// Re-enable the button
+	button.disabled = false;
 }
 
 function hideAllViews() {
@@ -864,7 +895,19 @@ function runEmailDisplayTests() {
 		return;
 	}
 
-	const results = testEmailDisplay();
+	// Run tests
+	let results = testEmailDisplay();
+
+	// If archive tests are available, run them too
+	if (typeof testArchiveFunctionality === 'function') {
+		const archiveResults = testArchiveFunctionality();
+
+		// Merge the results
+		results.totalTests += archiveResults.totalTests;
+		results.passed += archiveResults.passed;
+		results.failed += archiveResults.failed;
+		results.details = results.details.concat(archiveResults.details);
+	}
 
 	// Create a results display
 	const testResults = document.createElement('div');
@@ -927,6 +970,6 @@ function runEmailDisplayTests() {
 	document
 		.querySelector('#close-test-results')
 		.addEventListener('click', function () {
-			document.querySelector('#emails-view').innerHTML = '';
+			location.reload();
 		});
 }
