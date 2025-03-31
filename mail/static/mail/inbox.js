@@ -360,8 +360,16 @@ function load_mailbox(mailbox) {
 
 	// Show the mailbox name and create container
 	emailsView.innerHTML = `
-        <h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>
-        <div class="email-list"></div>
+        <div class="row mb-3">
+            <div class="col-12">
+                <h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="email-list"></div>
+            </div>
+        </div>
     `;
 
 	// Fetch and display emails
@@ -371,8 +379,12 @@ function load_mailbox(mailbox) {
 			const emailList = document.querySelector('.email-list');
 
 			if (emails.length === 0) {
-				emailList.innerHTML =
-					'<div class="p-3 text-muted">No emails to display</div>';
+				emailList.innerHTML = `
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="p-3 text-muted">No emails to display</div>
+                        </div>
+                    </div>`;
 				return;
 			}
 
@@ -397,7 +409,7 @@ function load_mailbox(mailbox) {
                         </div>
                     </div>
                     <div class="email-actions">
-                        <button class="btn btn-sm btn-outline-primary read-btn" title="${
+                        <button class="btn btn-sm btn-outline-primary read-btn m-1" title="${
 							email.read ? 'Mark as unread' : 'Mark as read'
 						}">
                             ${
@@ -413,7 +425,7 @@ function load_mailbox(mailbox) {
 								email.archived
 									? 'btn-outline-success'
 									: 'btn-outline-secondary'
-							} archive-btn ms-2" 
+							} archive-btn m-1" 
                                     title="${
 										email.archived
 											? 'Move to inbox'
@@ -424,7 +436,7 @@ function load_mailbox(mailbox) {
 										? '<i class="fas fa-inbox"></i>'
 										: '<i class="fas fa-archive"></i>'
 								}
-                                <span class="button-text ms-1">${
+                                <span class="d-none d-md-inline-block ml-1">${
 									email.archived ? 'Unarchive' : 'Archive'
 								}</span>
                             </button>
@@ -911,22 +923,36 @@ function runEmailDisplayTests() {
 
 	// Create a results display
 	const testResults = document.createElement('div');
-	testResults.className = 'card mt-4';
+	testResults.className = 'card mt-4 shadow-sm';
 	testResults.innerHTML = `
-		<div class="card-header bg-${results.failed > 0 ? 'warning' : 'success'}">
-			<h5>Email Display Tests</h5>
+		<div class="card-header bg-${
+			results.failed > 0 ? 'warning' : 'success'
+		} text-white">
+			<h5 class="mb-0 font-weight-bold"><i class="fas fa-vial mr-2"></i> Email Display Tests</h5>
 		</div>
 		<div class="card-body">
-			<p>Total tests: ${results.totalTests}</p>
-			<p class="text-success">Passed: ${results.passed}</p>
-			${
-				results.failed > 0
-					? `<p class="text-danger">Failed: ${results.failed}</p>`
-					: ''
-			}
+			<div class="d-flex justify-content-between mb-3 p-3 bg-light rounded">
+				<div>
+					<h6 class="mb-1 text-muted">Total tests:</h6>
+					<span class="h4 font-weight-bold">${results.totalTests}</span>
+				</div>
+				<div class="text-success">
+					<h6 class="mb-1 text-success">Passed:</h6>
+					<span class="h4 font-weight-bold">${results.passed}</span>
+				</div>
+				${
+					results.failed > 0
+						? `
+						<div class="text-danger">
+							<h6 class="mb-1 text-danger">Failed:</h6>
+							<span class="h4 font-weight-bold">${results.failed}</span>
+						</div>`
+						: ''
+				}
+			</div>
 			
-			<div class="mt-3">
-				<h6>Details:</h6>
+			<div class="mt-4">
+				<h6 class="font-weight-bold mb-3 border-bottom pb-2">Test Details:</h6>
 				<ul class="list-group">
 					${results.details
 						.map(
@@ -935,21 +961,26 @@ function runEmailDisplayTests() {
 							test.pass
 								? 'list-group-item-success'
 								: 'list-group-item-danger'
-						}">
-							${test.name}: ${test.pass ? 'PASS' : 'FAIL'}
-							${
-								!test.pass
-									? `
-								<div class="mt-2">
-									<small class="d-block"><strong>Actual:</strong> ${test.actual}</small>
-									${
-										test.expected
-											? `<small class="d-block"><strong>Expected:</strong> ${test.expected}</small>`
-											: ''
-									}
-								</div>`
-									: ''
-							}
+						} d-flex justify-content-between align-items-start">
+							<div class="ms-2 me-auto">
+								<div class="fw-bold">${test.name}</div>
+								${
+									!test.pass
+										? `
+									<div class="mt-2 small">
+										<div class="d-block"><strong>Actual:</strong> ${test.actual}</div>
+										${
+											test.expected
+												? `<div class="d-block"><strong>Expected:</strong> ${test.expected}</div>`
+												: ''
+										}
+									</div>`
+										: ''
+								}
+							</div>
+							<span class="badge ${test.pass ? 'bg-success' : 'bg-danger'} rounded-pill">
+								${test.pass ? 'PASS' : 'FAIL'}
+							</span>
 						</li>
 					`
 						)
@@ -957,8 +988,11 @@ function runEmailDisplayTests() {
 				</ul>
 			</div>
 		</div>
-		<div class="card-footer">
-			<button class="btn btn-sm btn-secondary" id="close-test-results">Close</button>
+		<div class="card-footer d-flex justify-content-between">
+			<span class="text-muted small">Tests completed at ${new Date().toLocaleTimeString()}</span>
+			<button class="btn btn-primary btn-sm" id="close-test-results">
+				<i class="fas fa-times mr-1"></i> Close
+			</button>
 		</div>
 	`;
 
