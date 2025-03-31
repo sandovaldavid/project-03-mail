@@ -335,9 +335,53 @@ body {
 @media (max-width: 576px) {
 	.email-actions .btn {
 		padding: 0.25rem 0.5rem;
+		font-size: 0.875rem;
 	}
 
-	.email-actions .btn-text {
+	.email-item .email-actions .button-text {
 		display: none;
+	}
+
+	.email-item {
+		padding: 0.75rem;
+	}
+
+	.btn-sm {
+		padding: 0.25rem 0.5rem;
+	}
+
+	.email-header {
+		flex-direction: column;
+	}
+
+	.email-header .mx-2 {
+		display: none;
+	}
+
+	.email-metadata p {
+		margin-bottom: 0.5rem;
+	}
+
+	.email-content {
+		width: 100%;
+		padding-right: 0.5rem;
+	}
+}
+
+@media (min-width: 577px) and (max-width: 991px) {
+	.email-item {
+		padding: 1rem;
+	}
+
+	.email-actions .btn {
+		margin-left: 0.25rem;
+	}
+}
+
+@media (max-width: 767px) {
+	#dark-mode-toggle {
+		width: 40px;
+		height: 40px;
+		padding: 0.25rem !important;
 	}
 }
