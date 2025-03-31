@@ -15,73 +15,289 @@ document.addEventListener('DOMContentLoaded', function () {
 		.querySelector('#archived')
 		.addEventListener('click', () => load_mailbox('archive'));
 	document.querySelector('#compose').addEventListener('click', compose_email);
+	const draftsBtn = document.querySelector('#drafts');
+	if (draftsBtn) {
+		draftsBtn.addEventListener('click', () => load_drafts());
+	}
+
+	document.body.addEventListener('click', function (e) {
+		if (e.target && e.target.closest('.toast-notification')) {
+			const notification = e.target.closest('.toast-notification');
+			notification.classList.remove('show');
+			setTimeout(() => notification.remove(), 300);
+		}
+	});
 
 	// By default, load the inbox
 	load_mailbox('inbox');
 });
 
-document.querySelector('#compose-form').onsubmit = function (event) {
-	event.preventDefault();
-
-	// Get form values
-	const recipients = document.querySelector('#compose-recipients').value;
-	const subject = document.querySelector('#compose-subject').value;
-	const body = document.querySelector('#compose-body').value;
-
-	// Validate form
-	const errors = validateEmailForm(recipients, subject, body);
-
-	// Remove any existing error messages
-	const existingError = document.querySelector('.compose-error');
-	if (existingError) {
-		existingError.remove();
+document.addEventListener('DOMContentLoaded', function () {
+	// Handle close compose button
+	const closeComposeBtn = document.querySelector('#close-compose');
+	if (closeComposeBtn) {
+		closeComposeBtn.addEventListener('click', () => load_mailbox('inbox'));
 	}
 
-	// If there are errors, display them and return
-	if (errors.length > 0) {
-		const errorDiv = document.createElement('div');
-		errorDiv.className = 'alert alert-danger compose-error';
-		errorDiv.innerHTML = `
-            <strong>Please correct the following errors:</strong>
-            <ul class="mb-0">
-                ${errors.map((error) => `<li>${error}</li>`).join('')}
-            </ul>
-        `;
-		document.querySelector('#compose-form').prepend(errorDiv);
+	// Handle discard button
+	const discardBtn = document.querySelector('#discard-email');
+	if (discardBtn) {
+		discardBtn.addEventListener('click', () => {
+			if (confirm('Are you sure you want to discard this email?')) {
+				load_mailbox('inbox');
+			}
+		});
+	}
+
+	// Handle save draft button (placeholder functionality)
+	const saveDraftBtn = document.querySelector('#save-draft');
+	if (saveDraftBtn) {
+		saveDraftBtn.addEventListener('click', () => {
+			// Get current form values
+			const recipients = document.querySelector(
+				'#compose-recipients'
+			).value;
+			const subject = document.querySelector('#compose-subject').value;
+			const body = document.querySelector('#compose-body').value;
+
+			// Only save if at least one field has content
+			if (recipients.trim() || subject.trim() || body.trim()) {
+				const draft = saveDraft(recipients, subject, body);
+				createAutoDisappearingAlert(
+					'success',
+					'Draft saved successfully!',
+					document.querySelector('#compose-form')
+				);
+			} else {
+				alert('Cannot save empty draft');
+			}
+		});
+	}
+
+	const composeForm = document.querySelector('#compose-form');
+	if (composeForm) {
+		composeForm.addEventListener('submit', function (event) {
+			event.preventDefault();
+
+			// Get form values
+			const recipients = document.querySelector(
+				'#compose-recipients'
+			).value;
+			const subject = document.querySelector('#compose-subject').value;
+			const body = document.querySelector('#compose-body').value;
+
+			// Validate form
+			const errors = validateEmailForm(recipients, subject, body);
+
+			// Remove any existing error messages
+			const existingError = document.querySelector('.compose-error');
+			if (existingError) {
+				existingError.remove();
+			}
+
+			// If there are errors, display them and return
+			if (errors.length > 0) {
+				const errorHTML = `
+        <strong>Please correct the following errors:</strong>
+        <ul class="mb-0">
+            ${errors.map((error) => `<li>${error}</li>`).join('')}
+        </ul>
+    `;
+				createAutoDisappearingAlert(
+					'danger',
+					errorHTML,
+					document.querySelector('#compose-form')
+				);
+				return;
+			}
+
+			// Show sending indicator
+			const sendingDiv = document.createElement('div');
+			sendingDiv.className = 'alert alert-info';
+			sendingDiv.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Sending email...`;
+			document.querySelector('#compose-form').prepend(sendingDiv);
+
+			// Console log for debugging
+			console.log('Attempting to send email to:', recipients);
+
+			// Send email using fetch
+			fetch('/emails', {
+				method: 'POST',
+				body: JSON.stringify({
+					recipients: recipients,
+					subject: subject,
+					body: body,
+				}),
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			})
+				.then((response) => {
+					console.log(
+						'Server response:',
+						response.status,
+						response.statusText
+					);
+
+					// Remove sending indicator
+					sendingDiv.remove();
+
+					if (!response.ok) {
+						// Convert response to JSON and handle error
+						return response.json().then((data) => {
+							throw new Error(
+								data.error || 'Failed to send email'
+							);
+						});
+					}
+
+					// Success case - parse JSON response
+					return response.json();
+				})
+				.then((data) => {
+					// Display success message
+					const successDiv = createAutoDisappearingAlert(
+						'success',
+						'Email sent successfully!',
+						document.querySelector('#compose-form')
+					);
+
+					// If this was a draft being sent, delete the draft
+					const draftId =
+						document.querySelector('#compose-form').dataset.draftId;
+					if (draftId) {
+						deleteDraft(draftId);
+						delete document.querySelector('#compose-form').dataset
+							.draftId;
+					}
+
+					// Wait briefly to show the success message before redirecting
+					setTimeout(() => {
+						load_mailbox('sent');
+					}, 1500);
+				})
+				.catch((error) => {
+					console.error('Error sending email:', error);
+
+					// Display error message
+					createAutoDisappearingAlert(
+						'danger',
+						error.message ||
+							'Network error occurred. Please try again.',
+						document.querySelector('#compose-form')
+					);
+				});
+		});
+	} else {
+		console.error('#compose-form not found in DOM');
+	}
+});
+
+function load_drafts() {
+	// Hide all views first
+	hideAllViews();
+
+	// Show emails view
+	const emailsView = document.querySelector('#' + VIEWS.EMAILS);
+	showView(VIEWS.EMAILS);
+
+	// Update active button
+	updateActiveButton('drafts');
+
+	// Get drafts from localStorage
+	const drafts = getDrafts();
+
+	// Show the drafts heading and create container
+	emailsView.innerHTML = `
+        <h3>Drafts</h3>
+        <div class="email-list"></div>
+    `;
+
+	const emailList = document.querySelector('.email-list');
+
+	if (drafts.length === 0) {
+		emailList.innerHTML =
+			'<div class="p-3 text-muted">No drafts available</div>';
 		return;
 	}
 
-	// Send email using fetch
-	fetch('/emails', {
-		method: 'POST',
-		body: JSON.stringify({
-			recipients: recipients,
-			subject: subject,
-			body: body,
-		}),
-		headers: {
-			'Content-Type': 'application/json',
-		},
-	})
-		.then((response) => {
-			if (!response.ok) {
-				return response.json().then((data) => {
-					const errorDiv = document.createElement('div');
-					errorDiv.className = 'alert alert-danger compose-error';
-					errorDiv.textContent = data.error;
-					document.querySelector('#compose-form').prepend(errorDiv);
-					throw new Error(data.error);
-				});
+	// Sort drafts by timestamp (newest first)
+	drafts.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+	drafts.forEach((draft) => {
+		const draftDiv = document.createElement('div');
+		draftDiv.className =
+			'email-item d-flex justify-content-between align-items-center p-3';
+		draftDiv.innerHTML = `
+            <div class="email-content">
+                <div class="email-header">
+                    <strong>To: ${
+						draft.recipients || '(No recipients)'
+					}</strong>
+                    <span class="mx-2">·</span>
+                    <span class="text-muted">${draft.timestamp}</span>
+                </div>
+                <div class="email-subject mt-1">
+                    ${draft.subject || '(No subject)'}
+                </div>
+            </div>
+            <div class="email-actions">
+                <button class="btn btn-sm btn-outline-primary edit-btn" title="Edit Draft">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger delete-btn ms-2" title="Delete Draft">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+
+		// Add hover effect
+		draftDiv.style.cursor = 'pointer';
+		draftDiv.style.transition = 'background-color 0.2s';
+
+		// Add click handler to edit draft
+		draftDiv.addEventListener('click', (e) => {
+			if (!e.target.matches('button') && !e.target.matches('i')) {
+				edit_draft(draft.id);
 			}
-			return response.json();
-		})
-		.then((result) => {
-			load_mailbox('sent');
-		})
-		.catch((error) => {
-			console.error('Error:', error);
 		});
-};
+
+		// Add button handlers
+		draftDiv.querySelector('.edit-btn').addEventListener('click', (e) => {
+			e.stopPropagation();
+			edit_draft(draft.id);
+		});
+
+		draftDiv.querySelector('.delete-btn').addEventListener('click', (e) => {
+			e.stopPropagation();
+			if (confirm('Are you sure you want to delete this draft?')) {
+				deleteDraft(draft.id);
+				load_drafts(); // Reload drafts view
+			}
+		});
+
+		emailList.append(draftDiv);
+	});
+}
+
+function edit_draft(draftId) {
+	const drafts = getDrafts();
+	const draft = drafts.find((d) => d.id === draftId);
+
+	if (draft) {
+		// Show compose view
+		compose_email();
+
+		// Fill in the draft data
+		document.querySelector('#compose-recipients').value =
+			draft.recipients || '';
+		document.querySelector('#compose-subject').value = draft.subject || '';
+		document.querySelector('#compose-body').value = draft.body || '';
+
+		// Store the draft ID to delete it if sent
+		document.querySelector('#compose-form').dataset.draftId = draftId;
+	}
+}
 
 function compose_email() {
 	// Hide all views first
@@ -280,6 +496,17 @@ function toggle_archive(email_id, archived) {
 			button.innerHTML = `<i class="fas fa-check"></i> ${
 				archived ? 'Unarchived' : 'Archived'
 			}`;
+
+			// Show a success message that will auto-dismiss
+			const mailboxView = document.querySelector('#' + VIEWS.EMAILS);
+			createAutoDisappearingAlert(
+				'success',
+				`Email ${
+					archived ? 'unarchived' : 'archived'
+				} successfully!`,
+				mailboxView
+			);
+
 			setTimeout(() => load_mailbox('inbox'), 1000);
 		})
 		.catch((error) => {
@@ -406,4 +633,120 @@ function validateEmailForm(recipients, subject, body) {
 	}
 
 	return errors;
+}
+
+// functions for draft management
+function saveDraft(recipients, subject, body) {
+	const drafts = getDrafts();
+	const draftId = Date.now().toString(); // timestamp as unique ID
+
+	// Create new draft object
+	const draft = {
+		id: draftId,
+		recipients: recipients,
+		subject: subject,
+		body: body,
+		timestamp: new Date().toLocaleString(),
+	};
+
+	// Add to drafts array
+	drafts.push(draft);
+
+	// Save to localStorage
+	localStorage.setItem('emailDrafts', JSON.stringify(drafts));
+
+	return draft;
+}
+
+function getDrafts() {
+	const draftsString = localStorage.getItem('emailDrafts');
+	return draftsString ? JSON.parse(draftsString) : [];
+}
+
+function deleteDraft(draftId) {
+	let drafts = getDrafts();
+	drafts = drafts.filter((draft) => draft.id !== draftId);
+	localStorage.setItem('emailDrafts', JSON.stringify(drafts));
+}
+
+// helper function to auto-dismiss alerts
+function createAutoDisappearingAlert(type, message, parent) {
+	// Get or create the notification container
+	let notificationContainer = document.getElementById(
+		'notification-container'
+	);
+
+	if (!notificationContainer) {
+		notificationContainer = document.createElement('div');
+		notificationContainer.id = 'notification-container';
+		document.body.appendChild(notificationContainer);
+	}
+
+	// Create toast notification
+	const toast = document.createElement('div');
+	toast.className = `toast-notification alert-${type}`;
+
+	// Set icon based on type
+	let icon = '';
+	let title = '';
+
+	switch (type) {
+		case 'success':
+			icon = '<i class="fas fa-check-circle" style="color:#28a745"></i>';
+			title = 'Success';
+			break;
+		case 'danger':
+			icon =
+				'<i class="fas fa-exclamation-circle" style="color:#dc3545"></i>';
+			title = 'Error';
+			break;
+		case 'info':
+			icon = '<i class="fas fa-info-circle" style="color:#17a2b8"></i>';
+			title = 'Info';
+			break;
+		case 'warning':
+			icon =
+				'<i class="fas fa-exclamation-triangle" style="color:#ffc107"></i>';
+			title = 'Warning';
+			break;
+	}
+
+	toast.innerHTML = `
+        ${icon}
+        <div class="toast-content">
+            <div class="toast-title">${title}</div>
+            <div class="toast-message">${message}</div>
+        </div>
+        <span class="close-btn">&times;</span>
+    `;
+
+	// Add to notification container
+	notificationContainer.appendChild(toast);
+
+	// Force a reflow/repaint before adding the 'show' class
+	toast.getBoundingClientRect();
+
+	// Add show class to trigger animation
+	toast.classList.add('show');
+
+	// Add close button functionality
+	const closeBtn = toast.querySelector('.close-btn');
+	closeBtn.addEventListener('click', () => {
+		toast.classList.remove('show');
+		setTimeout(() => toast.remove(), 300);
+	});
+
+	// Auto-remove after 5 seconds
+	setTimeout(() => {
+		if (toast.parentElement) {
+			toast.classList.remove('show');
+			setTimeout(() => {
+				if (toast.parentElement) {
+					toast.remove();
+				}
+			}, 300);
+		}
+	}, 5000);
+
+	return toast;
 }
