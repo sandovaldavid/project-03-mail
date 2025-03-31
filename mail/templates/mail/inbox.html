@@ -4,24 +4,24 @@
   <div id="notification-container"></div>
   <div class="container-md px-md-4 email-container animate-fadeInDown mt-3">
     <!-- Email Header -->
-    <div class="row py-3 email-header-row align-items-center mb-4 rounded shadow-sm animate-fadeInDown">
-      <div class="col-lg-6 col-md-5 mb-3 mb-md-0">
+    <div class="row py-3 email-header-row align-items-center mb-4 rounded shadow-sm animate-fadeInDown mx-1 justify-content-around">
+      <div class="col-lg-4 col-md-4 mb-3 mb-md-0">
         <h2 class="app-title mb-0">
           <a href="{% url 'index' %}" class="text-decoration-none text-primary">
-            <i class="fas fa-envelope text-primary mr-2"></i>
+            <i class="fas fa-envelope text-primary me-2"></i>
             <span class="text-primary font-weight-bold">Mail</span>
           </a>
-          <small class="text-muted d-block d-sm-inline-block mt-1 mt-sm-0 ml-sm-2">{{ request.user.email }}</small>
+          <small class="text-muted d-block d-sm-inline-block mt-1 mt-sm-0 ms-sm-2">{{ request.user.email }}</small>
         </h2>
       </div>
-      <div class="col-lg-6 col-md-7">
-        <div class="d-flex flex-wrap justify-content-center justify-content-md-end">
-          <button class="btn btn-sm btn-outline-primary m-1" id="inbox"><i class="fas fa-inbox mr-1"></i> Inbox</button>
-          <button class="btn btn-sm btn-outline-primary m-1" id="compose"><i class="fas fa-pen mr-1"></i> Compose</button>
-          <button class="btn btn-sm btn-outline-primary m-1" id="sent"><i class="fas fa-paper-plane mr-1"></i> Sent</button>
-          <button class="btn btn-sm btn-outline-primary m-1" id="archived"><i class="fas fa-archive mr-1"></i> Archived</button>
-          <button class="btn btn-sm btn-outline-primary m-1" id="drafts"><i class="fas fa-file-alt mr-1"></i> Drafts</button>
-          <a class="btn btn-sm btn-outline-danger m-1" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt mr-1"></i> Log Out</a>
+      <div class="col-md-7">
+        <div class="d-flex flex-wrap justify-content-center justify-content-md-end gap-1">
+          <button class="btn btn-sm btn-outline-primary m-1" id="inbox"><i class="fas fa-inbox me-1"></i> <span class="button-text">Inbox</span></button>
+          <button class="btn btn-sm btn-outline-primary m-1" id="compose"><i class="fas fa-pen me-1"></i> <span class="button-text">Compose</span></button>
+          <button class="btn btn-sm btn-outline-primary m-1" id="sent"><i class="fas fa-paper-plane me-1"></i> <span class="button-text">Sent</span></button>
+          <button class="btn btn-sm btn-outline-primary m-1" id="archived"><i class="fas fa-archive me-1"></i> <span class="button-text">Archived</span></button>
+          <button class="btn btn-sm btn-outline-primary m-1" id="drafts"><i class="fas fa-file-alt me-1"></i> <span class="button-text">Drafts</span></button>
+          <a class="btn btn-sm btn-outline-danger m-1" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt me-1"></i> <span class="button-text">Log Out</span></a>
         </div>
       </div>
     </div>
@@ -32,16 +32,16 @@
         <div class="card shadow-sm border-0 rounded-lg overflow-hidden animate-fadeInUp delay-200">
           <div class="card-body p-0">
             <!-- Emails View -->
-            <div id="emails-view" class="p-4"></div>
+            <div id="emails-view" class="p-3 p-md-4"></div>
 
             <!-- Compose View -->
-            <div id="compose-view" class="p-4">
+            <div id="compose-view" class="p-3 p-md-4">
               <div class="compose-header d-flex justify-content-between align-items-center mb-4">
-                <h3 class="text-primary mb-0"><i class="fas fa-pen-fancy mr-2"></i>Compose New Email</h3>
+                <h3 class="text-primary mb-0"><i class="fas fa-pen-fancy me-2"></i>Compose New Email</h3>
               </div>
 
               <div class="card shadow-sm border-0 rounded-lg">
-                <div class="card-body p-4">
+                <div class="card-body p-3 p-md-4">
                   <form id="compose-form">
                     {% csrf_token %}
 
@@ -67,19 +67,19 @@
                       <textarea class="form-control" id="compose-body" placeholder="Write your message here..."></textarea>
                     </div>
 
-                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center border-top pt-3 mt-3">
-                      <div class="d-flex flex-wrap mb-3 mb-md-0">
-                        <button type="button" id="discard-email" class="btn btn-outline-secondary m-1">
-                          <i class="fas fa-trash-alt mr-1"></i>
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center border-top pt-3 mt-3 gap-2">
+                      <div class="d-flex flex-wrap gap-2 mb-3 mb-md-0 w-100 w-md-auto justify-content-center justify-content-md-start">
+                        <button type="button" id="discard-email" class="btn btn-outline-secondary">
+                          <i class="fas fa-trash-alt me-1"></i>
                           <span class="btn-text">Discard</span>
                         </button>
-                        <button type="button" id="save-draft" class="btn btn-outline-primary m-1">
-                          <i class="fas fa-save mr-1"></i>
+                        <button type="button" id="save-draft" class="btn btn-outline-primary">
+                          <i class="fas fa-save me-1"></i>
                           <span class="btn-text">Save Draft</span>
                         </button>
                       </div>
                       <button type="submit" class="btn btn-primary btn-send shadow-sm w-100 w-md-auto">
-                        <i class="fas fa-paper-plane mr-1"></i>
+                        <i class="fas fa-paper-plane me-1"></i>
                         <span class="btn-text">Send</span>
                       </button>
                     </div>
@@ -96,7 +96,7 @@
     {% if debug %}
       <div class="row">
         <div class="col-12 text-center mt-4 animate-fadeInUp delay-400">
-          <button id="run-tests" class="btn btn-info shadow-sm"><i class="fas fa-vial mr-1"></i> Test Email Display</button>
+          <button id="run-tests" class="btn btn-info shadow-sm"><i class="fas fa-vial me-1"></i> Test Email Display</button>
         </div>
       </div>
     {% endif %}
