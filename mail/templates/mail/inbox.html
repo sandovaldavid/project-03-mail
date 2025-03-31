@@ -1,184 +1,117 @@
-{% extends 'mail/layout.html' %} {% load static %} {% block body %}
-<div id="notification-container"></div>
-<div class="container-fluid email-container">
-	<!-- Email Header -->
-	<div class="row py-3 email-header-row align-items-center mb-3">
-		<div class="col-md-6 mb-2 mb-md-0">
-			<h2 class="app-title">
-				<a
-					href="{% url 'index' %}"
-					class="text-decoration-none text-primary">
-					<i class="fas fa-envelope text-primary mr-2"></i>
-					<span class="text-primary font-weight-bold">Mail</span>
-				</a>
-				<small class="text-muted ml-2">{{ request.user.email }}</small>
-			</h2>
-		</div>
-		<div class="col-md-6">
-			<div class="d-flex justify-content-md-end justify-content-center">
-				<button class="btn btn-sm btn-outline-primary mx-1" id="inbox">
-					<i class="fas fa-inbox mr-1"></i> Inbox
-				</button>
-				<button
-					class="btn btn-sm btn-outline-primary mx-1"
-					id="compose">
-					<i class="fas fa-pen mr-1"></i> Compose
-				</button>
-				<button class="btn btn-sm btn-outline-primary mx-1" id="sent">
-					<i class="fas fa-paper-plane mr-1"></i> Sent
-				</button>
-				<button
-					class="btn btn-sm btn-outline-primary mx-1"
-					id="archived">
-					<i class="fas fa-archive mr-1"></i> Archived
-				</button>
-				<button class="btn btn-sm btn-outline-primary mx-1" id="drafts">
-					<i class="fas fa-file-alt mr-1"></i> Drafts
-				</button>
-				<a
-					class="btn btn-sm btn-outline-danger mx-1"
-					href="{% url 'logout' %}"
-					><i class="fas fa-sign-out-alt mr-1"></i> Log Out</a
-				>
-			</div>
-		</div>
-	</div>
+{% extends 'mail/layout.html' %}
+{% load static %}
+{% block body %}
+  <div id="notification-container"></div>
+  <div class="container-fluid email-container">
+    <!-- Email Header -->
+    <div class="row py-3 email-header-row align-items-center mb-3">
+      <div class="col-md-6 mb-2 mb-md-0">
+        <h2 class="app-title">
+          <a href="{% url 'index' %}" class="text-decoration-none text-primary">
+            <i class="fas fa-envelope text-primary mr-2"></i>
+            <span class="text-primary font-weight-bold">Mail</span>
+          </a>
+          <small class="text-muted ml-2">{{ request.user.email }}</small>
+        </h2>
+      </div>
+      <div class="col-md-6">
+        <div class="d-flex justify-content-md-end justify-content-center">
+          <button class="btn btn-sm btn-outline-primary mx-1" id="inbox"><i class="fas fa-inbox mr-1"></i> Inbox</button>
+          <button class="btn btn-sm btn-outline-primary mx-1" id="compose"><i class="fas fa-pen mr-1"></i> Compose</button>
+          <button class="btn btn-sm btn-outline-primary mx-1" id="sent"><i class="fas fa-paper-plane mr-1"></i> Sent</button>
+          <button class="btn btn-sm btn-outline-primary mx-1" id="archived"><i class="fas fa-archive mr-1"></i> Archived</button>
+          <button class="btn btn-sm btn-outline-primary mx-1" id="drafts"><i class="fas fa-file-alt mr-1"></i> Drafts</button>
+          <a class="btn btn-sm btn-outline-danger mx-1" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt mr-1"></i> Log Out</a>
+        </div>
+      </div>
+    </div>
 
-	<!-- Main Content Area -->
-	<div class="row">
-		<div class="col-12">
-			<div class="card shadow-sm">
-				<div class="card-body p-0">
-					<!-- Emails View -->
-					<div id="emails-view" class="p-3"></div>
+    <!-- Main Content Area -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card shadow-sm">
+          <div class="card-body p-0">
+            <!-- Emails View -->
+            <div id="emails-view" class="p-3"></div>
 
-					<!-- Compose View -->
-					<div id="compose-view" class="p-4">
-						<div
-							class="compose-header d-flex justify-content-between align-items-center mb-4">
-							<h3 class="text-primary mb-0">
-								<i class="fas fa-pen-fancy mr-2"></i>Compose New
-								Email
-							</h3>
-							<button
-								type="button"
-								class="btn-close"
-								id="close-compose"
-								aria-label="Close">
-								<i class="fas fa-times"></i>
-							</button>
-						</div>
+            <!-- Compose View -->
+            <div id="compose-view" class="p-4">
+              <div class="compose-header d-flex justify-content-between align-items-center mb-4">
+                <h3 class="text-primary mb-0"><i class="fas fa-pen-fancy mr-2"></i>Compose New Email</h3>
+                <button type="button" class="btn-close" id="close-compose" aria-label="Close"><i class="fas fa-times"></i></button>
+              </div>
 
-						<div class="card shadow-sm">
-							<div class="card-body p-4">
-								<form id="compose-form">
-									{% csrf_token %}
+              <div class="card shadow-sm">
+                <div class="card-body p-4">
+                  <form id="compose-form">
+                    {% csrf_token %}
 
-									<div class="form-group">
-										<div class="input-group">
-											<div class="input-group-prepend">
-												<span
-													class="input-group-text bg-light text-primary"
-													><i class="fas fa-user"></i
-												></span>
-											</div>
-											<input
-												disabled
-												class="form-control bg-light"
-												id="compose-from"
-												value="{{ request.user.email }}" />
-										</div>
-									</div>
+                    <div class="form-group">
+                      <div class="input-group">
+                        <div class="input-group-prepend">
+                          <span class="input-group-text bg-light text-primary"><i class="fas fa-user"></i></span>
+                        </div>
+                        <input disabled class="form-control bg-light" id="compose-from" value="{{ request.user.email }}" />
+                      </div>
+                    </div>
 
-									<div class="form-group">
-										<div class="input-group">
-											<div class="input-group-prepend">
-												<span
-													class="input-group-text bg-light text-primary"
-													><i class="fas fa-users"></i
-												></span>
-											</div>
-											<input
-												id="compose-recipients"
-												class="form-control"
-												placeholder="Recipients" />
-										</div>
-										<small class="text-muted"
-											>Separate multiple recipients with
-											commas</small
-										>
-									</div>
+                    <div class="form-group">
+                      <div class="input-group">
+                        <div class="input-group-prepend">
+                          <span class="input-group-text bg-light text-primary"><i class="fas fa-users"></i></span>
+                        </div>
+                        <input id="compose-recipients" class="form-control" placeholder="Recipients" />
+                      </div>
+                      <small class="text-muted">Separate multiple recipients with commas</small>
+                    </div>
 
-									<div class="form-group">
-										<div class="input-group">
-											<div class="input-group-prepend">
-												<span
-													class="input-group-text bg-light text-primary"
-													><i
-														class="fas fa-heading"></i
-												></span>
-											</div>
-											<input
-												class="form-control"
-												id="compose-subject"
-												placeholder="Subject" />
-										</div>
-									</div>
+                    <div class="form-group">
+                      <div class="input-group">
+                        <div class="input-group-prepend">
+                          <span class="input-group-text bg-light text-primary"><i class="fas fa-heading"></i></span>
+                        </div>
+                        <input class="form-control" id="compose-subject" placeholder="Subject" />
+                      </div>
+                    </div>
 
-									<div class="form-group">
-										<textarea
-											class="form-control"
-											id="compose-body"
-											placeholder="Write your message here..."></textarea>
-									</div>
+                    <div class="form-group">
+                      <textarea class="form-control" id="compose-body" placeholder="Write your message here..."></textarea>
+                    </div>
 
-									<div
-										class="compose-actions d-flex justify-content-between align-items-center">
-										<div>
-											<button
-												type="button"
-												id="discard-email"
-												class="btn btn-outline-secondary">
-												<i
-													class="fas fa-trash-alt mr-1"></i>
-												Discard
-											</button>
-											<button
-												type="button"
-												id="save-draft"
-												class="btn btn-outline-primary">
-												<i class="fas fa-save mr-1"></i>
-												Save Draft
-											</button>
-										</div>
-										<button
-											type="submit"
-											class="btn btn-primary btn-send">
-											<i
-												class="fas fa-paper-plane mr-1"></i>
-											Send
-										</button>
-									</div>
-								</form>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+                    <div class="compose-actions d-flex justify-content-between align-items-center">
+                      <div>
+                        <button type="button" id="discard-email" class="btn btn-outline-secondary">
+                          <i class="fas fa-trash-alt mr-1"></i>
+                          Discard
+                        </button>
+                        <button type="button" id="save-draft" class="btn btn-outline-primary">
+                          <i class="fas fa-save mr-1"></i>
+                          Save Draft
+                        </button>
+                      </div>
+                      <button type="submit" class="btn btn-primary btn-send">
+                        <i class="fas fa-paper-plane mr-1"></i>
+                        Send
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-	<!-- Test Button (only visible in debug mode) -->
-	{% if debug %}
-	<div class="mt-3 text-center">
-		<button id="run-tests" class="btn btn-sm btn-info">
-			<i class="fas fa-vial mr-1"></i> Test Email Display
-		</button>
-	</div>
-	{% endif %}
-</div>
+    <!-- Test Button (only visible in debug mode) -->
+    {% if debug %}
+      <div class="mt-3 text-center">
+        <button id="run-tests" class="btn btn-sm btn-info"><i class="fas fa-vial mr-1"></i> Test Email Display</button>
+      </div>
+    {% endif %}
+  </div>
 
-<style>
+  <style>
 	body {
 		background-image: url('{% static "images/background-tokyo.webp" %}');
 		background-repeat: no-repeat;
@@ -351,8 +284,10 @@
 		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 	}
 </style>
-{% endblock %} {% block script %}
-<script src="{% static 'mail/inbox.js' %}"></script>
-{% if debug %}
-<script src="{% static 'mail/tests/email-display.test.js' %}"></script>
-{% endif %} {% endblock %}
+{% endblock %} 
+{% block script %}
+  <script src="{% static 'mail/inbox.js' %}"></script>
+  {% if debug %}
+    <script src="{% static 'mail/tests/email-display.test.js' %}"></script>
+  {% endif %}
+{% endblock %}
