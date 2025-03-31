@@ -75,13 +75,13 @@ function testArchiveFunctionality() {
 	try {
 		// Create a test email item
 		const emailDiv = document.createElement('div');
-		emailDiv.className = 'email-item';
+		emailDiv.className = 'email-item shadow-sm';
 		emailDiv.innerHTML = `
             <div class="email-content">
                 <div class="email-header">
-                    <strong>From: test@example.com</strong>
+                    <strong class="text-body">From: test@example.com</strong>
                 </div>
-                <div class="email-subject">Test Email</div>
+                <div class="email-subject text-truncate font-weight-medium">Test Email</div>
             </div>
             <div class="email-actions">
                 <button class="btn btn-sm btn-outline-secondary archive-btn ms-2" title="Archive">
@@ -115,13 +115,13 @@ function testArchiveFunctionality() {
 	try {
 		// Create a test email item for archived email
 		const emailDiv = document.createElement('div');
-		emailDiv.className = 'email-item archived';
+		emailDiv.className = 'email-item archived shadow-sm';
 		emailDiv.innerHTML = `
             <div class="email-content">
                 <div class="email-header">
-                    <strong>From: test@example.com</strong>
+                    <strong class="text-body">From: test@example.com</strong>
                 </div>
-                <div class="email-subject">Archived Email</div>
+                <div class="email-subject text-truncate font-weight-medium">Archived Email</div>
             </div>
             <div class="email-actions">
                 <button class="btn btn-sm btn-outline-success archive-btn ms-2" title="Move to inbox">
@@ -176,7 +176,7 @@ function testArchiveFunctionality() {
 			'<i class="fas fa-archive"></i> <span class="button-text ms-1">Archive</span>';
 
 		const emailItem = document.createElement('div');
-		emailItem.className = 'email-item';
+		emailItem.className = 'email-item shadow-sm';
 		emailItem.appendChild(button);
 		document.body.appendChild(emailItem);
 
