@@ -339,3 +339,36 @@ tr:hover {
 .test-fail {
 	color: #dc3545;
 }
+
+/* Reply formatting styles */
+.email-quoted {
+	border-left: 3px solid #4285f4;
+	padding-left: 10px;
+	margin-top: 15px;
+	color: #666;
+}
+
+/* Reply button styling */
+#reply-btn {
+	background-color: rgba(66, 133, 244, 0.1);
+	border-color: #4285f4;
+	color: #4285f4;
+	transition: all 0.2s ease;
+}
+
+#reply-btn:hover {
+	background-color: #4285f4;
+	color: white;
+	transform: translateY(-2px);
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#reply-btn i {
+	font-size: 0.8rem;
+}
+
+/* Original message formatting in compose view */
+#compose-body {
+	font-family: monospace;
+	line-height: 1.5;
+}

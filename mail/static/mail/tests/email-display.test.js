@@ -47,7 +47,7 @@ function testEmailDisplay() {
                     
                     <div class="email-actions mb-3">
                         <button class="btn btn-sm btn-outline-primary" id="reply-btn">
-                            Reply
+                            <i class="fas fa-reply mr-1"></i> Reply
                         </button>
                     </div>
                     
@@ -173,6 +173,32 @@ function testEmailDisplay() {
 			},
 		},
 	];
+
+	// Test reply functionality
+	const replyButtonTest = {
+		name: 'Reply button functionality',
+		test: () => {
+			// Get the reply button
+			const replyButton = testContainer.querySelector('#reply-btn');
+
+			// Check if it exists and has the correct text and icon
+			const hasButton = !!replyButton;
+			const hasIcon =
+				replyButton?.querySelector('i.fas.fa-reply') !== null;
+			const hasCorrectText = replyButton?.textContent
+				.trim()
+				.includes('Reply');
+
+			return {
+				pass: hasButton && hasIcon && hasCorrectText,
+				actual: `Button exists: ${hasButton}, Has icon: ${hasIcon}, Has text: ${hasCorrectText}`,
+				expected: 'Button should exist with reply icon and text',
+			};
+		},
+	};
+
+	// Add the test to your tests array
+	tests.push(replyButtonTest);
 
 	// 6. Run tests and display results
 	const results = tests.map((testCase) => {

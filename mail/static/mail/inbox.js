@@ -332,10 +332,19 @@ function compose_email() {
 	showView(VIEWS.COMPOSE);
 	updateActiveButton('compose');
 
+	// Reset header to default (in case it was changed for reply)
+	document.querySelector('.compose-header h3').innerHTML =
+		'<i class="fas fa-pen-fancy mr-2"></i>Compose New Email';
+
 	// Clear out composition fields
 	document.querySelector('#compose-recipients').value = '';
 	document.querySelector('#compose-subject').value = '';
 	document.querySelector('#compose-body').value = '';
+
+	// Remove any data attributes related to replies
+	if (document.querySelector('#compose-form').dataset.replyTo) {
+		delete document.querySelector('#compose-form').dataset.replyTo;
+	}
 }
 
 function load_mailbox(mailbox) {
@@ -506,7 +515,17 @@ function view_email(email_id) {
 			// Add reply button event listener
 			document
 				.querySelector('#reply-btn')
-				.addEventListener('click', () => reply_to_email(email));
+				.addEventListener('click', () => {
+					// Pass the original (unsanitized) email to preserve proper formatting
+					reply_to_email(email);
+
+					// Show success notification
+					createAutoDisappearingAlert(
+						'info',
+						'Composing reply...',
+						document.querySelector('#compose-form')
+					);
+				});
 
 			// Add back button event listener
 			document
@@ -597,16 +616,28 @@ function reply_to_email(email) {
 	// Show compose view
 	compose_email();
 
+	// Update header to indicate this is a reply
+	document.querySelector('.compose-header h3').innerHTML =
+		'<i class="fas fa-reply mr-2"></i>Reply to Email';
+
 	// Pre-fill composition fields
 	document.querySelector('#compose-recipients').value = email.sender;
+
+	// Handle subject line - add Re: if not already present
 	document.querySelector('#compose-subject').value = email.subject.startsWith(
 		'Re: '
 	)
 		? email.subject
 		: `Re: ${email.subject}`;
+
+	// Format the quoted message with better styling and line breaks
+	const formattedDate = new Date(email.timestamp).toLocaleString();
 	document.querySelector(
 		'#compose-body'
-	).value = `\n\nOn ${email.timestamp} ${email.sender} wrote:\n${email.body}`;
+	).value = `\n\n-----Original Message-----\nFrom: ${email.sender}\nDate: ${formattedDate}\nSubject: ${email.subject}\n\n${email.body}`;
+
+	// Add a data attribute to track that this is a reply
+	document.querySelector('#compose-form').dataset.replyTo = email.id;
 }
 
 function mark_email_as_read(email_id) {
