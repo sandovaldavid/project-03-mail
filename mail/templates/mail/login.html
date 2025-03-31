@@ -1,105 +1,101 @@
-{% extends "mail/layout.html" %} 
-{% block title %}Login | Mail{% endblock %}
+{% extends 'mail/layout.html' %}
+{% block title %}
+  Login | Mail
+{% endblock %}
 {% load static %}
 {% block body %}
-
-<div class="container mt-5">
+  <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card shadow-lg border-0 rounded-lg">
-                <div class="card-header bg-primary text-white text-center py-4">
-                    <h2 class="font-weight-light mb-0">
-                        <i class="fas fa-envelope mr-2 "></i>Mail Login
-                    </h2>
-                </div>
-                <div class="card-body bg-light">
-                    {% if message %}
-                    <div class="alert alert-danger">{{ message }}</div>
-                    {% endif %}
+      <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0 rounded-lg">
+          <div class="card-header bg-primary text-white text-center py-4">
+            <h2 class="font-weight-light mb-0"><i class="fas fa-envelope mr-2"></i>Mail Login</h2>
+          </div>
+          <div class="card-body bg-light">
+            {% if message %}
+              <div class="alert alert-danger">{{ message }}</div>
+            {% endif %}
 
-                    <form action="{% url 'login' %}" method="post">
-                        {% csrf_token %}
-                        <div class="form-group">
-                            <label for="email" class="small mb-1">Email Address</label>
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                </div>
-                                <input autofocus class="form-control" type="email" name="email" id="email" placeholder="Enter your email" required />
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="password" class="small mb-1">Password</label>
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                </div>
-                                <input class="form-control" type="password" name="password" id="password" placeholder="Enter your password" required />
-                            </div>
-                        </div>
-                        <div class="form-group d-flex align-items-center justify-content-between mt-4 mb-0">
-                            <button type="submit" class="btn btn-primary btn-block">
-                                <i class="fas fa-sign-in-alt mr-2"></i>Login
-                            </button>
-                        </div>
-                    </form>
+            <form action="{% url 'login' %}" method="post">
+              {% csrf_token %}
+              <div class="form-group">
+                <label for="email" class="small mb-1">Email Address</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                  </div>
+                  <input autofocus class="form-control" type="email" name="email" id="email" placeholder="Enter your email" required />
                 </div>
-                <div class="card-footer text-center py-3">
-                    <div class="small">
-                        Don't have an account?
-                        <a href="{% url 'register' %}" class="text-primary">Register here</a>
-                    </div>
+              </div>
+              <div class="form-group">
+                <label for="password" class="small mb-1">Password</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                  </div>
+                  <input class="form-control" type="password" name="password" id="password" placeholder="Enter your password" required />
                 </div>
+              </div>
+              <div class="form-group d-flex align-items-center justify-content-between mt-4 mb-0">
+                <button type="submit" class="btn btn-primary btn-block"><i class="fas fa-sign-in-alt mr-2"></i>Login</button>
+              </div>
+            </form>
+          </div>
+          <div class="card-footer text-center py-3">
+            <div class="small">
+              Don't have an account?
+              <a href="{% url 'register' %}" class="text-primary">Register here</a>
             </div>
+          </div>
         </div>
+      </div>
     </div>
-</div>
+  </div>
 
-<style>
+  <style>
     body {
-        background-color: #f8f9fa;
+      background-color: #f8f9fa;
     }
-
-	.fa-envelope{
-		font-size: 2rem;
-	}
-
+    
+    .fa-envelope {
+      font-size: 2rem;
+    }
+    
     .card {
-        transition: all 0.3s ease;
+      transition: all 0.3s ease;
     }
     .btn-primary {
-        background-color: #4285F4;  /* Gmail-inspired blue */
-        border-color: #4285F4;
+      background-color: #4285f4; /* Gmail-inspired blue */
+      border-color: #4285f4;
     }
     .btn-primary:hover {
-        background-color: #3367D6;
-        border-color: #3367D6;
+      background-color: #3367d6;
+      border-color: #3367d6;
     }
     .card-header {
-        background-color: #4285F4 !important;
+      background-color: #4285f4 !important;
     }
     .form-control:focus {
-        border-color: #4285F4;
-        box-shadow: 0 0 0 0.2rem rgba(66, 133, 244, 0.25);
+      border-color: #4285f4;
+      box-shadow: 0 0 0 0.2rem rgba(66, 133, 244, 0.25);
     }
     .text-primary {
-        color: #4285F4 !important;
+      color: #4285f4 !important;
     }
     .input-group-text {
-        background-color: #4285F4;
-        color: white;
-        border-color: #4285F4;
+      background-color: #4285f4;
+      color: white;
+      border-color: #4285f4;
     }
     @media (max-width: 576px) {
-        .container {
-            padding-top: 1rem !important;
-        }
-        .card {
-            border-radius: 0;
-            margin: -15px;
-            height: 100vh;
-        }
+      .container {
+        padding-top: 1rem !important;
+      }
+      .card {
+        border-radius: 0;
+        margin: -15px;
+        height: 100vh;
+      }
     }
-</style>
-
+  </style>
 {% endblock %}
