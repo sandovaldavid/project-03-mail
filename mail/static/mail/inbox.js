@@ -111,6 +111,12 @@ document.addEventListener('DOMContentLoaded', function () {
 				return;
 			}
 
+			// Disable the submit button to prevent double submission
+			const submitButton = document.querySelector('.btn-send');
+			submitButton.disabled = true;
+			submitButton.innerHTML =
+				'<i class="fas fa-spinner fa-spin mr-1"></i> Sending...';
+
 			// Show sending indicator
 			const sendingDiv = document.createElement('div');
 			sendingDiv.className = 'alert alert-info';
@@ -142,19 +148,27 @@ document.addEventListener('DOMContentLoaded', function () {
 					// Remove sending indicator
 					sendingDiv.remove();
 
-					if (!response.ok) {
-						// Convert response to JSON and handle error
-						return response.json().then((data) => {
-							throw new Error(
-								data.error || 'Failed to send email'
-							);
-						});
-					}
-
-					// Success case - parse JSON response
-					return response.json();
+					// Always parse the JSON response, whether it's an error or success
+					return response.json().then((data) => {
+						// Add the status to the data object
+						return {
+							...data,
+							status: response.status,
+							ok: response.ok,
+						};
+					});
 				})
 				.then((data) => {
+					// Re-enable submit button
+					submitButton.disabled = false;
+					submitButton.innerHTML =
+						'<i class="fas fa-paper-plane mr-1"></i> Send';
+
+					if (!data.ok) {
+						// Handle server-side validation errors
+						throw new Error(data.error || 'Failed to send email');
+					}
+
 					// Display success message
 					const successDiv = createAutoDisappearingAlert(
 						'success',
@@ -178,6 +192,11 @@ document.addEventListener('DOMContentLoaded', function () {
 				})
 				.catch((error) => {
 					console.error('Error sending email:', error);
+
+					// Re-enable submit button
+					submitButton.disabled = false;
+					submitButton.innerHTML =
+						'<i class="fas fa-paper-plane mr-1"></i> Send';
 
 					// Display error message
 					createAutoDisappearingAlert(
@@ -501,9 +520,7 @@ function toggle_archive(email_id, archived) {
 			const mailboxView = document.querySelector('#' + VIEWS.EMAILS);
 			createAutoDisappearingAlert(
 				'success',
-				`Email ${
-					archived ? 'unarchived' : 'archived'
-				} successfully!`,
+				`Email ${archived ? 'unarchived' : 'archived'} successfully!`,
 				mailboxView
 			);
 
@@ -625,6 +642,8 @@ function validateEmailForm(recipients, subject, body) {
 	// Validate subject
 	if (!subject.trim()) {
 		errors.push('Subject field is required');
+	} else if (subject.length > 255) {
+		errors.push('Subject must be less than 256 characters');
 	}
 
 	// Validate body
