@@ -697,13 +697,18 @@ function mark_email_as_read(email_id) {
 
 function updateActiveButton(currentView) {
 	// Remove active class from all buttons
-	['inbox', 'sent', 'archived', 'compose'].forEach((id) => {
+	['inbox', 'sent', 'archived', 'compose', 'drafts'].forEach((id) => {
 		const button = document.querySelector('#' + id);
 		button.classList.remove('active');
 	});
 
 	// Add active class to current button
-	const activeButton = document.querySelector('#' + currentView);
+	let buttonId = currentView;
+	if (currentView === 'archive') {
+		buttonId = 'archived';
+	}
+
+	const activeButton = document.querySelector('#' + buttonId);
 	if (activeButton) {
 		activeButton.classList.add('active');
 	}
