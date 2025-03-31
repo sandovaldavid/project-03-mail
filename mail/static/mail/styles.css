@@ -157,7 +157,6 @@ tr:hover {
 /* Read/Unread button styles */
 .read-btn {
 	transition: all 0.2s ease;
-	width: 38px;
 	background-color: transparent;
 }
 
