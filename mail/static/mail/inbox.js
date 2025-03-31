@@ -20,6 +20,12 @@ document.addEventListener('DOMContentLoaded', function () {
 		draftsBtn.addEventListener('click', () => load_drafts());
 	}
 
+	// Add test button event handler
+	const testBtn = document.querySelector('#run-tests');
+	if (testBtn) {
+		testBtn.addEventListener('click', runEmailDisplayTests);
+	}
+
 	document.body.addEventListener('click', function (e) {
 		if (e.target && e.target.closest('.toast-notification')) {
 			const notification = e.target.closest('.toast-notification');
@@ -456,30 +462,42 @@ function view_email(email_id) {
 	fetch(`/emails/${email_id}`)
 		.then((response) => response.json())
 		.then((email) => {
+			// Create a sanitized email object to prevent XSS attacks
+			const sanitizedEmail = {
+				...email,
+				subject: escapeHtml(email.subject || '(No subject)'),
+				body: formatEmailBody(email.body),
+			};
+
 			document.querySelector('#emails-view').innerHTML = `
                 <div class="email-detail card">
-                    <div class="card-header">
-                        <h5 class="mb-0">${email.subject}</h5>
-                        <small class="text-muted">${email.timestamp}</small>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">${sanitizedEmail.subject}</h5>
+                        <small class="text-muted">${
+							sanitizedEmail.timestamp
+						}</small>
                     </div>
                     <div class="card-body">
-                        <div class="email-metadata mb-3">
+                        <div class="email-metadata mb-3 p-3 bg-light rounded">
                             <p class="mb-1"><strong>From:</strong> ${
-								email.sender
+								sanitizedEmail.sender
 							}</p>
-                            <p class="mb-1"><strong>To:</strong> ${email.recipients.join(
+                            <p class="mb-1"><strong>To:</strong> ${sanitizedEmail.recipients.join(
 								', '
 							)}</p>
                         </div>
                         
                         <div class="email-actions mb-3">
-                            <button class="btn btn-sm btn-outline-primary" id="reply-btn">
-                                Reply
+                            <button class="btn btn-sm btn-outline-primary" id="reply-btn" title="Reply to this email">
+                                <i class="fas fa-reply mr-1"></i> Reply
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" id="back-btn" title="Go back">
+                                <i class="fas fa-arrow-left mr-1"></i> Back
                             </button>
                         </div>
                         
-                        <div class="email-body">
-                            ${email.body}
+                        <div class="email-body border-top pt-3">
+                            ${sanitizedEmail.body}
                         </div>
                     </div>
                 </div>
@@ -490,11 +508,40 @@ function view_email(email_id) {
 				.querySelector('#reply-btn')
 				.addEventListener('click', () => reply_to_email(email));
 
+			// Add back button event listener
+			document
+				.querySelector('#back-btn')
+				.addEventListener('click', () => window.history.back());
+
 			// Mark email as read if it isn't already
 			if (!email.read) {
 				mark_email_as_read(email_id);
 			}
+		})
+		.catch((error) => {
+			console.error('Error loading email:', error);
+			document.querySelector('#emails-view').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    Error loading email. Please try again.
+                </div>
+            `;
 		});
+}
+
+// Helper functions for email display
+function escapeHtml(text) {
+	if (!text) return '';
+	const div = document.createElement('div');
+	div.textContent = text;
+	return div.innerHTML;
+}
+
+function formatEmailBody(body) {
+	if (!body) return '<em>(No content)</em>';
+
+	// Convert line breaks to <br> tags
+	return body.replace(/\n/g, '<br>');
 }
 
 // Add new helper function for toggling read status
@@ -768,4 +815,87 @@ function createAutoDisappearingAlert(type, message, parent) {
 	}, 5000);
 
 	return toast;
+}
+
+// Helper function for running tests - updated to work with Django static files
+function runEmailDisplayTests() {
+	// Since we're now loading the test script in the HTML, we can directly use the testEmailDisplay function
+	if (typeof testEmailDisplay === 'undefined') {
+		console.error(
+			'Test function not found. Make sure email-display.test.js is loaded.'
+		);
+		document.querySelector('#emails-view').innerHTML = `
+			<div class="alert alert-danger">
+				<i class="fas fa-exclamation-circle mr-2"></i>
+				Test script not found. Check console for details.
+			</div>
+		`;
+		return;
+	}
+
+	const results = testEmailDisplay();
+
+	// Create a results display
+	const testResults = document.createElement('div');
+	testResults.className = 'card mt-4';
+	testResults.innerHTML = `
+		<div class="card-header bg-${results.failed > 0 ? 'warning' : 'success'}">
+			<h5>Email Display Tests</h5>
+		</div>
+		<div class="card-body">
+			<p>Total tests: ${results.totalTests}</p>
+			<p class="text-success">Passed: ${results.passed}</p>
+			${
+				results.failed > 0
+					? `<p class="text-danger">Failed: ${results.failed}</p>`
+					: ''
+			}
+			
+			<div class="mt-3">
+				<h6>Details:</h6>
+				<ul class="list-group">
+					${results.details
+						.map(
+							(test) => `
+						<li class="list-group-item ${
+							test.pass
+								? 'list-group-item-success'
+								: 'list-group-item-danger'
+						}">
+							${test.name}: ${test.pass ? 'PASS' : 'FAIL'}
+							${
+								!test.pass
+									? `
+								<div class="mt-2">
+									<small class="d-block"><strong>Actual:</strong> ${test.actual}</small>
+									${
+										test.expected
+											? `<small class="d-block"><strong>Expected:</strong> ${test.expected}</small>`
+											: ''
+									}
+								</div>`
+									: ''
+							}
+						</li>
+					`
+						)
+						.join('')}
+				</ul>
+			</div>
+		</div>
+		<div class="card-footer">
+			<button class="btn btn-sm btn-secondary" id="close-test-results">Close</button>
+		</div>
+	`;
+
+	// Display the results
+	document.querySelector('#emails-view').innerHTML = '';
+	document.querySelector('#emails-view').appendChild(testResults);
+
+	// Add event listener to close button
+	document
+		.querySelector('#close-test-results')
+		.addEventListener('click', function () {
+			document.querySelector('#emails-view').innerHTML = '';
+		});
 }
