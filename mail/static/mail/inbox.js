@@ -394,11 +394,14 @@ function load_mailbox(mailbox) {
 				return;
 			}
 
-			emails.forEach((email) => {
+			emails.forEach((email, index) => {
 				const emailDiv = document.createElement('div');
+				const animationDelay = Math.min(index * 50, 500);
 				emailDiv.className = `email-item d-flex justify-content-between align-items-center p-3 ${
 					email.read ? 'read' : 'unread'
-				}`;
+				} animate-fadeInUp`;
+				emailDiv.style.animationDelay = `${animationDelay}ms`;
+
 				emailDiv.innerHTML = `
                     <div class="email-content">
                         <div class="email-header">
