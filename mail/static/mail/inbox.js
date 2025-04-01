@@ -3,6 +3,9 @@ const VIEWS = {
 	COMPOSE: 'compose-view',
 };
 
+// Add variable to track current mailbox
+let currentMailbox = 'inbox';
+
 document.addEventListener('DOMContentLoaded', function () {
 	// Add click handlers for navigation buttons
 	document
@@ -348,6 +351,9 @@ function compose_email() {
 }
 
 function load_mailbox(mailbox) {
+	// Store current mailbox for back button functionality
+	currentMailbox = mailbox;
+
 	// Hide all views first
 	hideAllViews();
 
@@ -542,7 +548,9 @@ function view_email(email_id) {
 			// Add back button event listener
 			document
 				.querySelector('#back-btn')
-				.addEventListener('click', () => window.history.back());
+				.addEventListener('click', () => {
+					load_mailbox(currentMailbox);
+				});
 
 			// Mark email as read if it isn't already
 			if (!email.read) {
