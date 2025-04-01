@@ -334,7 +334,7 @@ function compose_email() {
 
 	// Reset header to default (in case it was changed for reply)
 	document.querySelector('.compose-header h3').innerHTML =
-		'<i class="fas fa-pen-fancy mr-2"></i>Compose New Email';
+		'<i class="fas fa-pen-fancy me-2"></i>Compose New Email';
 
 	// Clear out composition fields
 	document.querySelector('#compose-recipients').value = '';
@@ -699,7 +699,10 @@ function updateActiveButton(currentView) {
 	// Remove active class from all buttons
 	['inbox', 'sent', 'archived', 'compose', 'drafts'].forEach((id) => {
 		const button = document.querySelector('#' + id);
-		button.classList.remove('active');
+		if (button) {
+			button.classList.remove('active');
+			button.classList.remove('btn-nav-active');
+		}
 	});
 
 	// Add active class to current button
@@ -711,6 +714,7 @@ function updateActiveButton(currentView) {
 	const activeButton = document.querySelector('#' + buttonId);
 	if (activeButton) {
 		activeButton.classList.add('active');
+		activeButton.classList.add('btn-nav-active');
 	}
 }
 
