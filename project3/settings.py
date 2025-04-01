@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 from dotenv import load_dotenv
+import libsql_experimental as libsql
 
 load_dotenv()
 
@@ -26,6 +27,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
 ENVIRONMENT = os.getenv("DJANGO_ENV", "development")
+
+url = os.getenv("TURSO_DATABASE_URL")
+auth_token = os.getenv("TURSO_AUTH_TOKEN")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -79,24 +83,38 @@ WSGI_APPLICATION = "project3.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-if ENVIRONMENT == "production":
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.getenv('TURSO_DATABASE_NAME'),
-            'OPTIONS': {
-                'uri': os.getenv('TURSO_DATABASE_URL'),
-                'auth_token': os.getenv('TURSO_AUTH_TOKEN'),
-            },
-        }
+# SQLite database configuration with Turso synchronization
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'TURSO_SYNC': True,
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
-    }
+}
+
+# Turso DB connection
+TURSO_DB_PATH = os.path.join(BASE_DIR, 'db.sqlite3')
+TURSO_SYNC_URL = url
+TURSO_AUTH_TOKEN = auth_token
+TURSO_DB_NAME = os.getenv("TURSO_DATABASE_NAME", "project-03-emailcom")
+
+# Initialize connection to Turso
+try:
+    conn = libsql.connect(TURSO_DB_PATH, sync_url=TURSO_SYNC_URL, auth_token=TURSO_AUTH_TOKEN)
+    # Initial sync at startup
+    conn.sync()
+    print(f"Successfully connected to Turso DB: {TURSO_DB_NAME}")
+except Exception as e:
+    print(f"Error connecting to Turso DB: {e}")
+
+# Function to get Turso connection for use in apps
+def get_turso_connection():
+    try:
+        connection = libsql.connect(TURSO_DB_PATH, sync_url=TURSO_SYNC_URL, auth_token=TURSO_AUTH_TOKEN)
+        return connection
+    except Exception as e:
+        print(f"Error creating Turso connection: {e}")
+        return None
 
 AUTH_USER_MODEL = "mail.User"
 
