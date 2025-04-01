@@ -414,8 +414,8 @@ function load_mailbox(mailbox) {
 						}">
                             ${
 								email.read
-									? '<i class="fas fa-envelope-open"></i>'
-									: '<i class="fas fa-envelope"></i>'
+									? '<i class="fas fa-envelope-open fs-6"></i>'
+									: '<i class="fas fa-envelope fs-6"></i>'
 							}
                         </button>
                         ${
@@ -733,8 +733,8 @@ function toggle_read(email_id, read) {
 	})
 		.then(() => {
 			button.innerHTML = !read
-				? '<i class="fas fa-envelope-open"></i>'
-				: '<i class="fas fa-envelope"></i>';
+				? '<i class="fas fa-envelope-open fs-6"></i>'
+				: '<i class="fas fa-envelope fs-6"></i>';
 			button.title = !read ? 'Mark as unread' : 'Mark as read';
 
 			// Update email item background
