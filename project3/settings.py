@@ -25,6 +25,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
+ENVIRONMENT = os.getenv("DJANGO_ENV", "development")
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -77,12 +79,24 @@ WSGI_APPLICATION = "project3.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+if ENVIRONMENT == "production":
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.getenv('TURSO_DATABASE_NAME'),
+            'OPTIONS': {
+                'uri': os.getenv('TURSO_DATABASE_URL'),
+                'auth_token': os.getenv('TURSO_AUTH_TOKEN'),
+            },
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
 
 AUTH_USER_MODEL = "mail.User"
 
