@@ -6,7 +6,6 @@ body {
 	background-size: cover;
 	background-color: rgb(203, 221, 238);
 	transition: background-color 0.3s ease, color 0.3s ease;
-	padding-bottom: 2rem;
 }
 
 .email-container {
