@@ -331,6 +331,141 @@ body {
 	}
 }
 
+/* Sidebar styling */
+.sidebar {
+	width: 240px;
+	height: 100vh;
+	position: fixed;
+	left: 0;
+	top: 0;
+	background-color: rgba(255, 255, 255, 0.95);
+	backdrop-filter: blur(10px);
+	border-right: 1px solid rgba(0, 0, 0, 0.08);
+	z-index: 1030;
+	transition: all 0.3s ease;
+	overflow-y: auto;
+}
+
+.sidebar-header {
+	padding: 1.5rem 1rem;
+}
+
+.btn-nav {
+	padding: 0.75rem 1rem;
+	border-radius: 0.5rem;
+	transition: all 0.2s ease;
+	color: #495057;
+	background: transparent;
+	border: none;
+}
+
+.btn-nav:hover {
+	background-color: rgba(66, 133, 244, 0.08);
+	transform: translateX(3px);
+}
+
+.btn-nav.active {
+	background-color: rgba(66, 133, 244, 0.12);
+	color: #4285f4;
+	font-weight: 500;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.btn-nav-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	color: #4285f4;
+}
+
+.content-wrapper {
+	margin-left: 240px;
+	transition: all 0.3s ease;
+	min-height: 100vh;
+	padding: 1rem;
+}
+
+/* Dark mode for sidebar */
+.dark-mode .sidebar {
+	background-color: rgba(33, 33, 33, 0.95);
+	border-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark-mode .btn-nav {
+	color: #e0e0e0;
+}
+
+.dark-mode .btn-nav:hover {
+	background-color: rgba(66, 133, 244, 0.15);
+}
+
+.dark-mode .btn-nav.active {
+	background-color: rgba(66, 133, 244, 0.2);
+}
+
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+	.sidebar {
+		width: 60px;
+		overflow-x: hidden;
+	}
+	
+	.sidebar .btn-nav-text,
+	.sidebar .app-title span,
+	.sidebar small {
+		display: none;
+	}
+	
+	.sidebar-header {
+		text-align: center;
+		padding: 1rem 0.5rem;
+	}
+	
+	.content-wrapper {
+		margin-left: 60px;
+	}
+	
+	.btn-nav {
+		justify-content: center;
+		padding: 0.75rem 0.5rem;
+	}
+}
+
+@media (max-width: 576px) {
+	.sidebar {
+		width: 100%;
+		height: auto;
+		position: relative;
+		border-right: none;
+		border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+	}
+	
+	.sidebar-nav {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+	
+	.nav-item {
+		width: auto;
+	}
+	
+	.btn-nav-text {
+		display: none;
+	}
+	
+	.content-wrapper {
+		margin-left: 0;
+		padding-top: 0.5rem;
+	}
+	
+	.d-flex {
+		flex-direction: column;
+	}
+}
+
 /* Responsive improvements */
 @media (max-width: 576px) {
 	.email-actions .btn {
