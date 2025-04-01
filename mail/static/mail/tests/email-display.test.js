@@ -30,28 +30,33 @@ function testEmailDisplay() {
 		const formattedBody = formatBody(email.body);
 
 		testContainer.innerHTML = `
-            <div class="email-detail card">
-                <div class="card-header">
-                    <h5 class="mb-0">${escapedSubject}</h5>
-                    <small class="text-muted">${email.timestamp}</small>
+            <div class="email-detail card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                    <h5 class="mb-0 font-weight-bold text-primary">${escapedSubject}</h5>
+                    <small class="text-muted font-italic">${
+						email.timestamp
+					}</small>
                 </div>
                 <div class="card-body">
-                    <div class="email-metadata mb-3">
-                        <p class="mb-1"><strong>From:</strong> ${
+                    <div class="email-metadata mb-3 p-3 bg-light rounded shadow-sm">
+                        <p class="mb-1"><strong class="text-dark">From:</strong> <span class="text-body">${
 							email.sender
-						}</p>
-                        <p class="mb-1"><strong>To:</strong> ${email.recipients.join(
+						}</span></p>
+                        <p class="mb-1"><strong class="text-dark">To:</strong> <span class="text-body">${email.recipients.join(
 							', '
-						)}</p>
+						)}</span></p>
                     </div>
                     
-                    <div class="email-actions mb-3">
-                        <button class="btn btn-sm btn-outline-primary" id="reply-btn">
+                    <div class="email-actions mb-3 d-flex flex-wrap">
+                        <button class="btn btn-sm btn-primary mr-2" id="reply-btn" title="Reply to this email">
                             <i class="fas fa-reply mr-1"></i> Reply
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" id="back-btn" title="Go back">
+                            <i class="fas fa-arrow-left mr-1"></i> Back
                         </button>
                     </div>
                     
-                    <div class="email-body">
+                    <div class="email-body border-top pt-3 text-body">
                         ${formattedBody}
                     </div>
                 </div>
@@ -188,11 +193,14 @@ function testEmailDisplay() {
 			const hasCorrectText = replyButton?.textContent
 				.trim()
 				.includes('Reply');
+			const hasCorrectClass =
+				replyButton?.classList.contains('btn-primary');
 
 			return {
-				pass: hasButton && hasIcon && hasCorrectText,
-				actual: `Button exists: ${hasButton}, Has icon: ${hasIcon}, Has text: ${hasCorrectText}`,
-				expected: 'Button should exist with reply icon and text',
+				pass: hasButton && hasIcon && hasCorrectText && hasCorrectClass,
+				actual: `Button exists: ${hasButton}, Has icon: ${hasIcon}, Has text: ${hasCorrectText}, Has correct class: ${hasCorrectClass}`,
+				expected:
+					'Button should exist with reply icon, text, and primary styling',
 			};
 		},
 	};
