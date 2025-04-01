@@ -499,7 +499,7 @@ function view_email(email_id) {
 						}</small>
                     </div>
                     <div class="card-body">
-                        <div class="email-metadata mb-3 p-3 bg-light rounded">
+                        <div class="email-metadata mb-3 p-3 rounded">
                             <p class="mb-1"><strong>From:</strong> ${
 								sanitizedEmail.sender
 							}</p>
@@ -940,7 +940,7 @@ function runEmailDisplayTests() {
 			<h5 class="mb-0 font-weight-bold"><i class="fas fa-vial mr-2"></i> Email Display Tests</h5>
 		</div>
 		<div class="card-body">
-			<div class="d-flex justify-content-between mb-3 p-3 bg-light rounded">
+			<div class="d-flex justify-content-between mb-3 p-3 rounded">
 				<div>
 					<h6 class="mb-1 text-muted">Total tests:</h6>
 					<span class="h4 font-weight-bold">${results.totalTests}</span>
