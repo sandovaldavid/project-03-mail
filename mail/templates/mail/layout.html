@@ -1,6 +1,7 @@
 {% load static %}
 
 <!DOCTYPE html>
+<meta charset="utf-8">
 <html lang="en" data-bs-theme="light">
   <head>
     <title>
@@ -21,6 +22,33 @@
     <meta name="author" content="David Sandoval" />
     <meta name="theme-color" content="#4285f4" />
     <meta name="color-scheme" content="light dark" />
+    <meta name="publisher" content="https://mail.devsandoval.me/" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://mail.devsandoval.me/" />
+
+    <!-- Open Graph tags (Facebook, Instagram, WhatsApp, LinkedIn) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Mail - Modern Email Client" />
+    <meta property="og:description" content="A simple email client built with Django and JavaScript." />
+    <meta property="og:url" content="https://mail.devsandoval.me/" />
+    <meta property="og:image" content="https://mail.devsandoval.me{% static 'images/og/og-mail.png' %}" />
+    <meta property="og:site_name" content="Mail" />
+    <meta property="og:locale" content="es_PE" />
+
+    <!-- Twitter Cards (works also for X and Telegram) -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Mail - Modern Email Client" />
+    <meta name="twitter:description" content="A simple email client built with Django and JavaScript." />
+    <meta name="twitter:image" content="https://mail.devsandoval.me{% static 'images/og/og-mail.png' %}" />
+    <meta name="twitter:site" content="@dev_sandoval" />
+    <meta name="twitter:creator" content="@dev_sandoval" />
+
+    <!-- Social Media Profiles -->
+    <meta property="og:see_also" content="https://instagram.com/dev.sandoval" />
+    <meta property="og:see_also" content="https://twitter.com/dev_sandoval" />
+    <meta property="og:see_also" content="https://linkedin.com/in/devsandoval" />
+    <meta property="og:see_also" content="https://facebook.com/devsandoval.web" />
 
     <!-- Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
