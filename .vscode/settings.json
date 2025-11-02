@@ -1,8 +1,9 @@
 {
-    "python.createEnvironment.contentButton": "show",
-    "python.envFile": "${workspaceFolder}/env",
-    "python.terminal.activateEnvInCurrentTerminal": true,
-    "black-formatter.interpreter": [
-        "/home/dsandoval/workspaces/project-03-mail/env/bin/python"
-    ],
+	"python.createEnvironment.contentButton": "show",
+	"python.envFile": "${workspaceFolder}/env",
+	"python.terminal.activateEnvInCurrentTerminal": true,
+	"black-formatter.interpreter": ["/home/dsandoval/workspaces/project-03-mail/env/bin/python"],
+	"python-envs.defaultEnvManager": "ms-python.python:conda",
+	"python-envs.defaultPackageManager": "ms-python.python:conda",
+	"python-envs.pythonProjects": []
 }
