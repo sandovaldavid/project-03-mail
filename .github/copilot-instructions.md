@@ -128,7 +128,7 @@ conda activate project-03-mail
 ### Essential Commands
 
 ```powershell
-# Database (SQLite locally, MySQL in production)
+# Database (SQLite locally, PostgreSQL in production)
 python manage.py makemigrations mail
 python manage.py migrate
 
@@ -149,9 +149,9 @@ Required environment variables:
 - `DJANGO_SECRET_KEY` - Django secret key
 - `DJANGO_DEBUG` - "True" for dev, "False" for prod
 - `DJANGO_ALLOWED_HOSTS` - Comma-separated hosts
-- `DJANGO_PRODUCTION` - "True" switches to MySQL, "False" uses SQLite
-- MySQL vars (if production): `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_HOST`,
-  `MYSQL_PORT`
+- `DJANGO_PRODUCTION` - "True" switches to PostgreSQL, "False" uses SQLite
+- PostgreSQL vars (if production): `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`,
+  `POSTGRES_HOST`, `POSTGRES_PORT`
 
 ### Deployment
 
@@ -208,7 +208,7 @@ Match this format exactly when creating mock data or tests.
 2. **Wrong static file path** → Use `'mail/file.js'` not `'file.js'`
 3. **Loading JS before Bootstrap** → Bootstrap components won't work
 4. **Not sanitizing HTML** → XSS vulnerabilities (use `escapeHtml()`)
-5. **Database choice confusion** → SQLite locally (`DJANGO_PRODUCTION=False`), MySQL in prod
+5. **Database choice confusion** → SQLite locally (`DJANGO_PRODUCTION=False`), PostgreSQL in prod
 6. **Multiple active views** → Always `hideAllViews()` before `showView()`
 
 ## File Organization
