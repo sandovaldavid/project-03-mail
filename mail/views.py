@@ -1,13 +1,15 @@
 import json
+import logging
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse, HttpResponseRedirect, render
 from django.urls import reverse
-from django.views.decorators.csrf import csrf_exempt
 
 from .models import User, Email
+
+logger = logging.getLogger(__name__)
 
 
 def index(request):
@@ -15,14 +17,33 @@ def index(request):
     if request.user.is_authenticated:
         # Add debug context for test button
         from django.conf import settings
-        return render(request, "mail/inbox.html", {"debug": settings.DEBUG})
+        
+        # Preparar datos para JavaScript (Data Bridge)
+        datos_para_js = {
+            'user': {
+                'id': request.user.id,
+                'email': request.user.email,
+                'username': request.user.get_username(),
+                'is_authenticated': True
+            },
+            'api_urls': {
+                'compose': reverse('compose'),
+                'mailbox': '/emails',  # Base URL para mailbox endpoints
+                'email_detail': '/emails',  # Base URL para email detail endpoints
+            },
+            'debug': settings.DEBUG
+        }
+        
+        return render(request, "mail/inbox.html", {
+            "debug": settings.DEBUG,
+            "datos_para_js": datos_para_js
+        })
 
     # Everyone else is prompted to sign in
     else:
         return HttpResponseRedirect(reverse("login"))
 
 
-@csrf_exempt
 @login_required
 def compose(request):
 
@@ -93,7 +114,6 @@ def mailbox(request, mailbox):
     return JsonResponse([email.serialize() for email in emails], safe=False)
 
 
-@csrf_exempt
 @login_required
 def email(request, email_id):
 
@@ -137,13 +157,36 @@ def login_view(request):
             login(request, user)
             return HttpResponseRedirect(reverse("index"))
         else:
+            # Preparar datos para JavaScript (Data Bridge)
+            datos_para_js = {
+                'user': {
+                    'is_authenticated': False
+                },
+                'api_urls': {
+                    'login': reverse('login'),
+                    'register': reverse('register')
+                }
+            }
             return render(
                 request,
                 "mail/login.html",
-                {"message": "Invalid email and/or password."},
+                {
+                    "message": "Invalid email and/or password.",
+                    "datos_para_js": datos_para_js
+                },
             )
     else:
-        return render(request, "mail/login.html")
+        # Preparar datos para JavaScript (Data Bridge)
+        datos_para_js = {
+            'user': {
+                'is_authenticated': False
+            },
+            'api_urls': {
+                'login': reverse('login'),
+                'register': reverse('register')
+            }
+        }
+        return render(request, "mail/login.html", {"datos_para_js": datos_para_js})
 
 
 def logout_view(request):
@@ -152,6 +195,17 @@ def logout_view(request):
 
 
 def register(request):
+    # Preparar datos para JavaScript (Data Bridge)
+    datos_para_js = {
+        'user': {
+            'is_authenticated': request.user.is_authenticated
+        },
+        'api_urls': {
+            'login': reverse('login'),
+            'register': reverse('register')
+        }
+    }
+    
     if request.method == "POST":
         email = request.POST["email"]
 
@@ -160,7 +214,10 @@ def register(request):
         confirmation = request.POST["confirmation"]
         if password != confirmation:
             return render(
-                request, "mail/register.html", {"message": "Passwords must match."}
+                request, "mail/register.html", {
+                    "message": "Passwords must match.",
+                    "datos_para_js": datos_para_js
+                }
             )
 
         # Attempt to create new user
@@ -168,13 +225,16 @@ def register(request):
             user = User.objects.create_user(email, email, password)
             user.save()
         except IntegrityError as e:
-            print(e)
+            logger.error(f"User registration failed for {email}: {e}")
             return render(
                 request,
                 "mail/register.html",
-                {"message": "Email address already taken."},
+                {
+                    "message": "Email address already taken.",
+                    "datos_para_js": datos_para_js
+                },
             )
         login(request, user)
         return HttpResponseRedirect(reverse("index"))
     else:
-        return render(request, "mail/register.html")
+        return render(request, "mail/register.html", {"datos_para_js": datos_para_js})
