@@ -20,9 +20,7 @@ function displayEmail(email, container) {
 	emailDetail.className = 'email-detail card shadow animate-scaleUp';
 	emailDetail.innerHTML = `
     <div class="card-header d-flex justify-content-between align-items-center bg-light">
-      <h5 class="mb-0 font-weight-bold text-primary">${
-			sanitizedEmail.subject
-		}</h5>
+      <h5 class="mb-0 font-weight-bold text-primary">${sanitizedEmail.subject}</h5>
       <small class="text-muted font-italic">${sanitizedEmail.timestamp}</small>
     </div>
     <div class="card-body">
@@ -30,11 +28,11 @@ function displayEmail(email, container) {
         <div class="col-12">
           <div class="email-metadata mb-3 p-3 bg-light rounded shadow-sm animate-fadeInDown delay-100">
             <p class="mb-1"><strong class="text-dark">From:</strong> <span class="text-body">${
-				sanitizedEmail.sender
-			}</span></p>
+							sanitizedEmail.sender
+						}</span></p>
             <p class="mb-1"><strong class="text-dark">To:</strong> <span class="text-body">${sanitizedEmail.recipients.join(
-				', '
-			)}</span></p>
+							', '
+						)}</span></p>
           </div>
         </div>
       </div>
@@ -87,31 +85,5 @@ function displayEmail(email, container) {
 	return emailDetail;
 }
 
-/**
- * Escape HTML to prevent XSS
- * @param {string} text - Text to escape
- * @returns {string} - Escaped HTML
- */
-function escapeHtml(text) {
-	if (!text) return '';
-	const div = document.createElement('div');
-	div.textContent = text;
-	return div.innerHTML;
-}
-
-/**
- * Format email body with line breaks
- * @param {string} body - Email body text
- * @returns {string} - Formatted HTML
- */
-function formatEmailBody(body) {
-	if (!body) return '<em>(No content)</em>';
-
-	// Convert line breaks to <br> tags
-	return body.replace(/\n/g, '<br>');
-}
-
 // Export functions for use elsewhere
 window.displayEmail = displayEmail;
-window.escapeHtml = escapeHtml;
-window.formatEmailBody = formatEmailBody;
