@@ -3,3 +3,4 @@ mysqlclient==2.2.7
 python-dotenv==1.1.0
 gunicorn==23.0.0
 whitenoise==6.6.0
+black==24.10.0
