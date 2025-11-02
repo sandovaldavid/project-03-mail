@@ -81,12 +81,15 @@ WSGI_APPLICATION = "project3.wsgi.application"
 if os.environ.get("DJANGO_PRODUCTION", "True") == "True":
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.mysql",
-            "NAME": os.environ.get("MYSQL_DATABASE"),
-            "USER": os.environ.get("MYSQL_USER"),
-            "PASSWORD": os.environ.get("MYSQL_PASSWORD"),
-            "HOST": os.environ.get("MYSQL_HOST", "localhost"),
-            "PORT": os.environ.get("MYSQL_PORT", "3306"),
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("POSTGRES_DB"),
+            "USER": os.environ.get("POSTGRES_USER"),
+            "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
+            "HOST": os.environ.get("POSTGRES_HOST", "localhost"),
+            "PORT": os.environ.get("POSTGRES_PORT", "5432"),
+            "OPTIONS": {
+                "sslmode": "require",  # Required for Neon
+            },
         }
     }
 else:
