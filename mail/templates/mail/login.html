@@ -1,5 +1,5 @@
-{% extends 'mail/layout.html' %} {% block title %} Login | Mail {% endblock %} {% load static %} {%
-block body %}
+{% extends 'mail/layout.html' %} {% block title %} Login | Mail \ {% endblock %} {% load static %}
+{% block body %}
 <div class="container mt-5">
 	<div class="row justify-content-center">
 		<div class="col-md-6 col-lg-5">
@@ -75,6 +75,7 @@ block body %}
 		<i class="fas fa-moon"></i>
 	</button>
 </div>
+
 {% endblock %} {% block script %}
 <!-- Data Bridge: Pasar datos de Django a JavaScript de forma segura -->
 {{ datos_para_js | json_script:"datos-django" }}
