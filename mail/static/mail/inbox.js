@@ -6,17 +6,22 @@ const VIEWS = {
 // Add variable to track current mailbox
 let currentMailbox = 'inbox';
 
+// Data Bridge: Leer datos de Django pasados de forma segura
+let djangoData = null;
+try {
+	const datosElement = document.getElementById('datos-django');
+	if (datosElement) {
+		djangoData = JSON.parse(datosElement.textContent);
+	}
+} catch (error) {
+	console.error('Error parsing Django data:', error);
+}
+
 document.addEventListener('DOMContentLoaded', function () {
 	// Add click handlers for navigation buttons
-	document
-		.querySelector('#inbox')
-		.addEventListener('click', () => load_mailbox('inbox'));
-	document
-		.querySelector('#sent')
-		.addEventListener('click', () => load_mailbox('sent'));
-	document
-		.querySelector('#archived')
-		.addEventListener('click', () => load_mailbox('archive'));
+	document.querySelector('#inbox').addEventListener('click', () => load_mailbox('inbox'));
+	document.querySelector('#sent').addEventListener('click', () => load_mailbox('sent'));
+	document.querySelector('#archived').addEventListener('click', () => load_mailbox('archive'));
 	document.querySelector('#compose').addEventListener('click', compose_email);
 	const draftsBtn = document.querySelector('#drafts');
 	if (draftsBtn) {
@@ -37,11 +42,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	});
 
-	// By default, load the inbox
-	load_mailbox('inbox');
-});
-
-document.addEventListener('DOMContentLoaded', function () {
 	// Handle close compose button
 	const closeComposeBtn = document.querySelector('#close-compose');
 	if (closeComposeBtn) {
@@ -58,168 +58,147 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 
-	// Handle save draft button (placeholder functionality)
+	// Handle save draft button
 	const saveDraftBtn = document.querySelector('#save-draft');
 	if (saveDraftBtn) {
 		saveDraftBtn.addEventListener('click', () => {
 			// Get current form values
-			const recipients = document.querySelector(
-				'#compose-recipients'
-			).value;
+			const recipients = document.querySelector('#compose-recipients').value;
 			const subject = document.querySelector('#compose-subject').value;
 			const body = document.querySelector('#compose-body').value;
 
 			// Only save if at least one field has content
 			if (recipients.trim() || subject.trim() || body.trim()) {
 				const draft = saveDraft(recipients, subject, body);
-				createAutoDisappearingAlert(
-					'success',
-					'Draft saved successfully!',
-					document.querySelector('#compose-form')
-				);
+				window.notifications.success('Draft saved successfully!');
 			} else {
 				alert('Cannot save empty draft');
 			}
 		});
 	}
 
+	// Handle compose form submission
 	const composeForm = document.querySelector('#compose-form');
 	if (composeForm) {
-		composeForm.addEventListener('submit', function (event) {
-			event.preventDefault();
-
-			// Get form values
-			const recipients = document.querySelector(
-				'#compose-recipients'
-			).value;
-			const subject = document.querySelector('#compose-subject').value;
-			const body = document.querySelector('#compose-body').value;
-
-			// Validate form
-			const errors = validateEmailForm(recipients, subject, body);
-
-			// Remove any existing error messages
-			const existingError = document.querySelector('.compose-error');
-			if (existingError) {
-				existingError.remove();
-			}
-
-			// If there are errors, display them and return
-			if (errors.length > 0) {
-				const errorHTML = `
-        <strong>Please correct the following errors:</strong>
-        <ul class="mb-0">
-            ${errors.map((error) => `<li>${error}</li>`).join('')}
-        </ul>
-    `;
-				createAutoDisappearingAlert(
-					'danger',
-					errorHTML,
-					document.querySelector('#compose-form')
-				);
-				return;
-			}
-
-			// Disable the submit button to prevent double submission
-			const submitButton = document.querySelector('.btn-send');
-			submitButton.disabled = true;
-			submitButton.innerHTML =
-				'<i class="fas fa-spinner fa-spin mr-1"></i> Sending...';
-
-			// Show sending indicator
-			const sendingDiv = document.createElement('div');
-			sendingDiv.className = 'alert alert-info';
-			sendingDiv.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Sending email...`;
-			document.querySelector('#compose-form').prepend(sendingDiv);
-
-			// Console log for debugging
-			console.log('Attempting to send email to:', recipients);
-
-			// Send email using fetch
-			fetch('/emails', {
-				method: 'POST',
-				body: JSON.stringify({
-					recipients: recipients,
-					subject: subject,
-					body: body,
-				}),
-				headers: {
-					'Content-Type': 'application/json',
-				},
-			})
-				.then((response) => {
-					console.log(
-						'Server response:',
-						response.status,
-						response.statusText
-					);
-
-					// Remove sending indicator
-					sendingDiv.remove();
-
-					// Always parse the JSON response, whether it's an error or success
-					return response.json().then((data) => {
-						// Add the status to the data object
-						return {
-							...data,
-							status: response.status,
-							ok: response.ok,
-						};
-					});
-				})
-				.then((data) => {
-					// Re-enable submit button
-					submitButton.disabled = false;
-					submitButton.innerHTML =
-						'<i class="fas fa-paper-plane mr-1"></i> Send';
-
-					if (!data.ok) {
-						// Handle server-side validation errors
-						throw new Error(data.error || 'Failed to send email');
-					}
-
-					// Display success message
-					const successDiv = createAutoDisappearingAlert(
-						'success',
-						'Email sent successfully!',
-						document.querySelector('#compose-form')
-					);
-
-					// If this was a draft being sent, delete the draft
-					const draftId =
-						document.querySelector('#compose-form').dataset.draftId;
-					if (draftId) {
-						deleteDraft(draftId);
-						delete document.querySelector('#compose-form').dataset
-							.draftId;
-					}
-
-					// Wait briefly to show the success message before redirecting
-					setTimeout(() => {
-						load_mailbox('sent');
-					}, 1500);
-				})
-				.catch((error) => {
-					console.error('Error sending email:', error);
-
-					// Re-enable submit button
-					submitButton.disabled = false;
-					submitButton.innerHTML =
-						'<i class="fas fa-paper-plane mr-1"></i> Send';
-
-					// Display error message
-					createAutoDisappearingAlert(
-						'danger',
-						error.message ||
-							'Network error occurred. Please try again.',
-						document.querySelector('#compose-form')
-					);
-				});
-		});
+		composeForm.addEventListener('submit', handleComposeSubmit);
 	} else {
 		console.error('#compose-form not found in DOM');
 	}
+
+	// By default, load the inbox
+	load_mailbox('inbox');
 });
+
+// Helper function to get CSRF token from cookies
+function getCookie(name) {
+	let cookieValue = null;
+	if (document.cookie && document.cookie !== '') {
+		const cookies = document.cookie.split(';');
+		for (let i = 0; i < cookies.length; i++) {
+			const cookie = cookies[i].trim();
+			if (cookie.substring(0, name.length + 1) === name + '=') {
+				cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+				break;
+			}
+		}
+	}
+	return cookieValue;
+}
+
+// Handle compose form submission
+function handleComposeSubmit(event) {
+	event.preventDefault();
+
+	// Get form values
+	const recipients = document.querySelector('#compose-recipients').value;
+	const subject = document.querySelector('#compose-subject').value;
+	const body = document.querySelector('#compose-body').value;
+
+	// Validate form
+	const errors = validateEmailForm(recipients, subject, body);
+
+	// If there are errors, display them and return
+	if (errors.length > 0) {
+		const errorHTML = `
+			<strong>Please correct the following errors:</strong>
+			<ul class="mb-0">
+				${errors.map((error) => `<li>${error}</li>`).join('')}
+			</ul>
+		`;
+		window.notifications.error(errorHTML);
+		return;
+	}
+
+	// Disable the submit button to prevent double submission
+	const submitButton = document.querySelector('.btn-send');
+	submitButton.disabled = true;
+	submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Sending...';
+
+	// Show sending indicator
+	const sendingDiv = document.createElement('div');
+	sendingDiv.className = 'alert alert-info';
+	sendingDiv.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Sending email...`;
+	document.querySelector('#compose-form').prepend(sendingDiv);
+
+	// Get CSRF token
+	const csrftoken = getCookie('csrftoken');
+
+	// Send email using fetch (usando URL del data bridge)
+	const composeUrl = djangoData?.api_urls?.compose || '/emails';
+	fetch(composeUrl, {
+		method: 'POST',
+		body: JSON.stringify({
+			recipients: recipients,
+			subject: subject,
+			body: body,
+		}),
+		headers: {
+			'Content-Type': 'application/json',
+			'X-CSRFToken': csrftoken,
+		},
+	})
+		.then((response) => {
+			// Remove sending indicator
+			sendingDiv.remove();
+
+			if (!response.ok) {
+				return response.json().then((data) => {
+					throw new Error(data.error || 'Failed to send email');
+				});
+			}
+			return response.json();
+		})
+		.then((data) => {
+			// Re-enable submit button
+			submitButton.disabled = false;
+			submitButton.innerHTML = '<i class="fas fa-paper-plane mr-1"></i> Send';
+
+			// Display success message
+			window.notifications.success('Email sent successfully!');
+
+			// If this was a draft being sent, delete the draft
+			const draftId = document.querySelector('#compose-form').dataset.draftId;
+			if (draftId) {
+				deleteDraft(draftId);
+				delete document.querySelector('#compose-form').dataset.draftId;
+			}
+
+			// Wait briefly to show the success message before redirecting
+			setTimeout(() => {
+				load_mailbox('sent');
+			}, 1500);
+		})
+		.catch((error) => {
+			console.error('Error sending email:', error);
+
+			// Re-enable submit button
+			submitButton.disabled = false;
+			submitButton.innerHTML = '<i class="fas fa-paper-plane mr-1"></i> Send';
+
+			// Display error message
+			window.notifications.error(error.message || 'Network error occurred. Please try again.');
+		});
+}
 
 function load_drafts() {
 	// Hide all views first
@@ -244,8 +223,7 @@ function load_drafts() {
 	const emailList = document.querySelector('.email-list');
 
 	if (drafts.length === 0) {
-		emailList.innerHTML =
-			'<div class="p-3 text-muted">No drafts available</div>';
+		emailList.innerHTML = '<div class="p-3 text-muted">No drafts available</div>';
 		return;
 	}
 
@@ -254,14 +232,11 @@ function load_drafts() {
 
 	drafts.forEach((draft) => {
 		const draftDiv = document.createElement('div');
-		draftDiv.className =
-			'email-item d-flex justify-content-between align-items-center p-3';
+		draftDiv.className = 'email-item d-flex justify-content-between align-items-center p-3';
 		draftDiv.innerHTML = `
             <div class="email-content">
                 <div class="email-header">
-                    <strong>To: ${
-						draft.recipients || '(No recipients)'
-					}</strong>
+                    <strong>To: ${draft.recipients || '(No recipients)'}</strong>
                     <span class="mx-2">·</span>
                     <span class="text-muted">${draft.timestamp}</span>
                 </div>
@@ -317,8 +292,7 @@ function edit_draft(draftId) {
 		compose_email();
 
 		// Fill in the draft data
-		document.querySelector('#compose-recipients').value =
-			draft.recipients || '';
+		document.querySelector('#compose-recipients').value = draft.recipients || '';
 		document.querySelector('#compose-subject').value = draft.subject || '';
 		document.querySelector('#compose-body').value = draft.body || '';
 
@@ -379,8 +353,14 @@ function load_mailbox(mailbox) {
     `;
 
 	// Fetch and display emails
-	fetch(`/emails/${mailbox}`)
-		.then((response) => response.json())
+	const mailboxBaseUrl = djangoData?.api_urls?.mailbox || '/emails';
+	fetch(`${mailboxBaseUrl}/${mailbox}`)
+		.then((response) => {
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+			return response.json();
+		})
 		.then((emails) => {
 			const emailList = document.querySelector('.email-list');
 
@@ -406,10 +386,10 @@ function load_mailbox(mailbox) {
                     <div class="email-content">
                         <div class="email-header">
                             <strong>${
-								mailbox === 'sent'
-									? `To: ${email.recipients.join(', ')}`
-									: `From: ${email.sender}`
-							}</strong>
+															mailbox === 'sent'
+																? `To: ${email.recipients.join(', ')}`
+																: `From: ${email.sender}`
+														}</strong>
                             <span class="mx-2">·</span>
                             <span class="text-muted">${email.timestamp}</span>
                         </div>
@@ -419,39 +399,33 @@ function load_mailbox(mailbox) {
                     </div>
                     <div class="email-actions">
                         <button class="btn btn-sm btn-outline-primary read-btn m-1" title="${
-							email.read ? 'Mark as unread' : 'Mark as read'
-						}">
+													email.read ? 'Mark as unread' : 'Mark as read'
+												}">
                             ${
-								email.read
-									? '<i class="fas fa-envelope-open fs-6"></i>'
-									: '<i class="fas fa-envelope fs-6"></i>'
-							}
+															email.read
+																? '<i class="fas fa-envelope-open fs-6"></i>'
+																: '<i class="fas fa-envelope fs-6"></i>'
+														}
                         </button>
                         ${
-							mailbox !== 'sent'
-								? `
+													mailbox !== 'sent'
+														? `
                             <button class="btn btn-sm ${
-								email.archived
-									? 'btn-outline-success'
-									: 'btn-outline-secondary'
-							} archive-btn m-1" 
-                                    title="${
-										email.archived
-											? 'Move to inbox'
-											: 'Archive'
-									}">
+															email.archived ? 'btn-outline-success' : 'btn-outline-secondary'
+														} archive-btn m-1" 
+                                    title="${email.archived ? 'Move to inbox' : 'Archive'}">
                                 ${
-									email.archived
-										? '<i class="fas fa-inbox"></i>'
-										: '<i class="fas fa-archive"></i>'
-								}
+																	email.archived
+																		? '<i class="fas fa-inbox"></i>'
+																		: '<i class="fas fa-archive"></i>'
+																}
                                 <span class="d-none d-md-inline-block ml-1">${
-									email.archived ? 'Unarchive' : 'Archive'
-								}</span>
+																	email.archived ? 'Unarchive' : 'Archive'
+																}</span>
                             </button>
                         `
-								: ''
-						}
+														: ''
+												}
                     </div>
                 `;
 
@@ -467,20 +441,16 @@ function load_mailbox(mailbox) {
 				});
 
 				// Add button handlers
-				emailDiv
-					.querySelector('.read-btn')
-					.addEventListener('click', (e) => {
-						e.stopPropagation();
-						toggle_read(email.id, email.read);
-					});
+				emailDiv.querySelector('.read-btn').addEventListener('click', (e) => {
+					e.stopPropagation();
+					toggle_read(email.id, email.read);
+				});
 
 				if (mailbox !== 'sent') {
-					emailDiv
-						.querySelector('.archive-btn')
-						.addEventListener('click', (e) => {
-							e.stopPropagation();
-							toggle_archive(email.id, email.archived);
-						});
+					emailDiv.querySelector('.archive-btn').addEventListener('click', (e) => {
+						e.stopPropagation();
+						toggle_archive(email.id, email.archived);
+					});
 				}
 
 				emailList.append(emailDiv);
@@ -489,8 +459,14 @@ function load_mailbox(mailbox) {
 }
 
 function view_email(email_id) {
-	fetch(`/emails/${email_id}`)
-		.then((response) => response.json())
+	const emailBaseUrl = djangoData?.api_urls?.email_detail || '/emails';
+	fetch(`${emailBaseUrl}/${email_id}`)
+		.then((response) => {
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+			return response.json();
+		})
 		.then((email) => {
 			// Create a sanitized email object to prevent XSS attacks
 			const sanitizedEmail = {
@@ -503,18 +479,14 @@ function view_email(email_id) {
                 <div class="email-detail card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">${sanitizedEmail.subject}</h5>
-                        <small class="text-muted">${
-							sanitizedEmail.timestamp
-						}</small>
+                        <small class="text-muted">${sanitizedEmail.timestamp}</small>
                     </div>
                     <div class="card-body">
                         <div class="email-metadata mb-3 p-3 rounded">
-                            <p class="mb-1"><strong>From:</strong> ${
-								sanitizedEmail.sender
-							}</p>
+                            <p class="mb-1"><strong>From:</strong> ${sanitizedEmail.sender}</p>
                             <p class="mb-1"><strong>To:</strong> ${sanitizedEmail.recipients.join(
-								', '
-							)}</p>
+															', '
+														)}</p>
                         </div>
                         
                         <div class="email-actions mb-3">
@@ -534,26 +506,22 @@ function view_email(email_id) {
             `;
 
 			// Add reply button event listener
-			document
-				.querySelector('#reply-btn')
-				.addEventListener('click', () => {
-					// Pass the original (unsanitized) email to preserve proper formatting
-					reply_to_email(email);
+			document.querySelector('#reply-btn').addEventListener('click', () => {
+				// Pass the original (unsanitized) email to preserve proper formatting
+				reply_to_email(email);
 
-					// Show success notification
-					createAutoDisappearingAlert(
-						'info',
-						'Composing reply...',
-						document.querySelector('#compose-form')
-					);
-				});
+				// Show success notification
+				createAutoDisappearingAlert(
+					'info',
+					'Composing reply...',
+					document.querySelector('#compose-form')
+				);
+			});
 
 			// Add back button event listener
-			document
-				.querySelector('#back-btn')
-				.addEventListener('click', () => {
-					load_mailbox(currentMailbox);
-				});
+			document.querySelector('#back-btn').addEventListener('click', () => {
+				load_mailbox(currentMailbox);
+			});
 
 			// Mark email as read if it isn't already
 			if (!email.read) {
@@ -571,33 +539,22 @@ function view_email(email_id) {
 		});
 }
 
-// Helper functions for email display
-function escapeHtml(text) {
-	if (!text) return '';
-	const div = document.createElement('div');
-	div.textContent = text;
-	return div.innerHTML;
-}
-
-function formatEmailBody(body) {
-	if (!body) return '<em>(No content)</em>';
-
-	// Convert line breaks to <br> tags
-	return body.replace(/\n/g, '<br>');
-}
-
 // Add new helper function for toggling read status
 function toggle_archive(email_id, archived) {
 	const button = event.target.closest('.archive-btn');
 	button.disabled = true; // Prevent double-clicks
 
-	return fetch(`/emails/${email_id}`, {
+	const emailBaseUrl = djangoData?.api_urls?.email_detail || '/emails';
+	const csrftoken = getCookie('csrftoken');
+
+	return fetch(`${emailBaseUrl}/${email_id}`, {
 		method: 'PUT',
 		body: JSON.stringify({
 			archived: !archived,
 		}),
 		headers: {
 			'Content-Type': 'application/json',
+			'X-CSRFToken': csrftoken,
 		},
 	})
 		.then(() => {
@@ -622,9 +579,7 @@ function toggle_archive(email_id, archived) {
 			const mailboxView = document.querySelector('#' + VIEWS.EMAILS);
 			createAutoDisappearingAlert(
 				'danger',
-				`Failed to ${
-					archived ? 'unarchive' : 'archive'
-				} email. Please try again.`,
+				`Failed to ${archived ? 'unarchive' : 'archive'} email. Please try again.`,
 				mailboxView
 			);
 		});
@@ -635,9 +590,7 @@ function handleArchiveStateChange(button, archived) {
 	// Update button appearance based on archived state
 	button.innerHTML = `<i class="fas fa-${
 		archived ? 'inbox' : 'archive'
-	}"></i> <span class="button-text ms-1">${
-		archived ? 'Unarchive' : 'Archive'
-	}</span>`;
+	}"></i> <span class="button-text ms-1">${archived ? 'Unarchive' : 'Archive'}</span>`;
 	button.title = archived ? 'Move to inbox' : 'Archive';
 	button.classList.toggle('btn-outline-success', archived);
 	button.classList.toggle('btn-outline-secondary', !archived);
@@ -678,9 +631,7 @@ function reply_to_email(email) {
 	document.querySelector('#compose-recipients').value = email.sender;
 
 	// Handle subject line - add Re: if not already present
-	document.querySelector('#compose-subject').value = email.subject.startsWith(
-		'Re: '
-	)
+	document.querySelector('#compose-subject').value = email.subject.startsWith('Re: ')
 		? email.subject
 		: `Re: ${email.subject}`;
 
@@ -695,13 +646,17 @@ function reply_to_email(email) {
 }
 
 function mark_email_as_read(email_id) {
-	return fetch(`/emails/${email_id}`, {
+	const emailBaseUrl = djangoData?.api_urls?.email_detail || '/emails';
+	const csrftoken = getCookie('csrftoken');
+
+	return fetch(`${emailBaseUrl}/${email_id}`, {
 		method: 'PUT',
 		body: JSON.stringify({
 			read: true,
 		}),
 		headers: {
 			'Content-Type': 'application/json',
+			'X-CSRFToken': csrftoken,
 		},
 	});
 }
@@ -733,13 +688,17 @@ function toggle_read(email_id, read) {
 	const button = event.target.closest('.read-btn');
 	button.disabled = true; // Prevent double-clicks
 
-	return fetch(`/emails/${email_id}`, {
+	const emailBaseUrl = djangoData?.api_urls?.email_detail || '/emails';
+	const csrftoken = getCookie('csrftoken');
+
+	return fetch(`${emailBaseUrl}/${email_id}`, {
 		method: 'PUT',
 		body: JSON.stringify({
 			read: !read,
 		}),
 		headers: {
 			'Content-Type': 'application/json',
+			'X-CSRFToken': csrftoken,
 		},
 	})
 		.then(() => {
@@ -829,95 +788,11 @@ function deleteDraft(draftId) {
 	localStorage.setItem('emailDrafts', JSON.stringify(drafts));
 }
 
-// helper function to auto-dismiss alerts
-function createAutoDisappearingAlert(type, message, parent) {
-	// Get or create the notification container
-	let notificationContainer = document.getElementById(
-		'notification-container'
-	);
-
-	if (!notificationContainer) {
-		notificationContainer = document.createElement('div');
-		notificationContainer.id = 'notification-container';
-		document.body.appendChild(notificationContainer);
-	}
-
-	// Create toast notification
-	const toast = document.createElement('div');
-	toast.className = `toast-notification alert-${type}`;
-
-	// Set icon based on type
-	let icon = '';
-	let title = '';
-
-	switch (type) {
-		case 'success':
-			icon = '<i class="fas fa-check-circle" style="color:#28a745"></i>';
-			title = 'Success';
-			break;
-		case 'danger':
-			icon =
-				'<i class="fas fa-exclamation-circle" style="color:#dc3545"></i>';
-			title = 'Error';
-			break;
-		case 'info':
-			icon = '<i class="fas fa-info-circle" style="color:#17a2b8"></i>';
-			title = 'Info';
-			break;
-		case 'warning':
-			icon =
-				'<i class="fas fa-exclamation-triangle" style="color:#ffc107"></i>';
-			title = 'Warning';
-			break;
-	}
-
-	toast.innerHTML = `
-        ${icon}
-        <div class="toast-content">
-            <div class="toast-title">${title}</div>
-            <div class="toast-message">${message}</div>
-        </div>
-        <span class="close-btn">&times;</span>
-    `;
-
-	// Add to notification container
-	notificationContainer.appendChild(toast);
-
-	// Force a reflow/repaint before adding the 'show' class
-	toast.getBoundingClientRect();
-
-	// Add show class to trigger animation
-	toast.classList.add('show');
-
-	// Add close button functionality
-	const closeBtn = toast.querySelector('.close-btn');
-	closeBtn.addEventListener('click', () => {
-		toast.classList.remove('show');
-		setTimeout(() => toast.remove(), 300);
-	});
-
-	// Auto-remove after 5 seconds
-	setTimeout(() => {
-		if (toast.parentElement) {
-			toast.classList.remove('show');
-			setTimeout(() => {
-				if (toast.parentElement) {
-					toast.remove();
-				}
-			}, 300);
-		}
-	}, 5000);
-
-	return toast;
-}
-
 // Helper function for running tests - updated to work with Django static files
 function runEmailDisplayTests() {
 	// Since we're now loading the test script in the HTML, we can directly use the testEmailDisplay function
 	if (typeof testEmailDisplay === 'undefined') {
-		console.error(
-			'Test function not found. Make sure email-display.test.js is loaded.'
-		);
+		console.error('Test function not found. Make sure email-display.test.js is loaded.');
 		document.querySelector('#emails-view').innerHTML = `
 			<div class="alert alert-danger">
 				<i class="fas fa-exclamation-circle mr-2"></i>
@@ -945,9 +820,7 @@ function runEmailDisplayTests() {
 	const testResults = document.createElement('div');
 	testResults.className = 'card mt-4 shadow-sm';
 	testResults.innerHTML = `
-		<div class="card-header bg-${
-			results.failed > 0 ? 'warning' : 'success'
-		} text-white">
+		<div class="card-header bg-${results.failed > 0 ? 'warning' : 'success'} text-white">
 			<h5 class="mb-0 font-weight-bold"><i class="fas fa-vial mr-2"></i> Email Display Tests</h5>
 		</div>
 		<div class="card-body">
@@ -978,9 +851,7 @@ function runEmailDisplayTests() {
 						.map(
 							(test) => `
 						<li class="list-group-item ${
-							test.pass
-								? 'list-group-item-success'
-								: 'list-group-item-danger'
+							test.pass ? 'list-group-item-success' : 'list-group-item-danger'
 						} d-flex justify-content-between align-items-start">
 							<div class="ms-2 me-auto">
 								<div class="fw-bold">${test.name}</div>
@@ -989,11 +860,7 @@ function runEmailDisplayTests() {
 										? `
 									<div class="mt-2 small">
 										<div class="d-block"><strong>Actual:</strong> ${test.actual}</div>
-										${
-											test.expected
-												? `<div class="d-block"><strong>Expected:</strong> ${test.expected}</div>`
-												: ''
-										}
+										${test.expected ? `<div class="d-block"><strong>Expected:</strong> ${test.expected}</div>` : ''}
 									</div>`
 										: ''
 								}
@@ -1021,9 +888,7 @@ function runEmailDisplayTests() {
 	document.querySelector('#emails-view').appendChild(testResults);
 
 	// Add event listener to close button
-	document
-		.querySelector('#close-test-results')
-		.addEventListener('click', function () {
-			location.reload();
-		});
+	document.querySelector('#close-test-results').addEventListener('click', function () {
+		location.reload();
+	});
 }
