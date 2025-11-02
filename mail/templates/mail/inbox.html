@@ -1,171 +1,204 @@
-{% extends 'mail/layout.html' %}
-{% load static %}
-{% block body %}
-  <div id="notification-container"></div>
+{% extends 'mail/layout.html' %} {% load static %} {% block body %}
+<div id="notification-container"></div>
 
-  <div class="d-flex">
-    <!-- Sidebar -->
-    <div class="sidebar shadow-sm animate-fadeInLeft">
-      <div class="sidebar-header p-3 border-bottom">
-        <h2 class="app-title mb-0">
-          <a href="{% url 'index' %}" class="text-decoration-none text-primary">
-            <i class="fas fa-envelope text-primary me-2"></i>
-            <span class="text-primary font-weight-bold">Mail</span>
-          </a>
-        </h2>
-        <small class="text-muted d-block mt-1">{{ request.user.email }}</small>
-      </div>
+<div class="d-flex">
+	<!-- Sidebar -->
+	<div class="sidebar shadow-sm animate-fadeInLeft">
+		<div class="sidebar-header p-3 border-bottom">
+			<h2 class="app-title mb-0">
+				<a href="{% url 'index' %}" class="text-decoration-none text-primary">
+					<i class="fas fa-envelope text-primary me-2"></i>
+					<span class="text-primary font-weight-bold">Mail</span>
+				</a>
+			</h2>
+			<small class="text-muted d-block mt-1">{{ request.user.email }}</small>
+		</div>
 
-      <div class="sidebar-nav p-2">
-        <div class="nav-item py-1">
-          <button class="btn btn-nav d-flex align-items-center w-100 text-start" id="inbox">
-            <div class="btn-nav-icon me-2">
-              <i class="fas fa-inbox fa-fw"></i>
-            </div>
-            <span class="btn-nav-text font-weight-medium">Inbox</span>
-          </button>
-        </div>
+		<div class="sidebar-nav p-2">
+			<div class="nav-item py-1">
+				<button class="btn btn-nav d-flex align-items-center w-100 text-start" id="inbox">
+					<div class="btn-nav-icon me-2">
+						<i class="fas fa-inbox fa-fw"></i>
+					</div>
+					<span class="btn-nav-text font-weight-medium">Inbox</span>
+				</button>
+			</div>
 
-        <div class="nav-item py-1">
-          <button class="btn btn-nav d-flex align-items-center w-100 text-start" id="compose">
-            <div class="btn-nav-icon me-2">
-              <i class="fas fa-pen fa-fw"></i>
-            </div>
-            <span class="btn-nav-text font-weight-medium">Compose</span>
-          </button>
-        </div>
+			<div class="nav-item py-1">
+				<button class="btn btn-nav d-flex align-items-center w-100 text-start" id="compose">
+					<div class="btn-nav-icon me-2">
+						<i class="fas fa-pen fa-fw"></i>
+					</div>
+					<span class="btn-nav-text font-weight-medium">Compose</span>
+				</button>
+			</div>
 
-        <div class="nav-item py-1">
-          <button class="btn btn-nav d-flex align-items-center w-100 text-start" id="sent">
-            <div class="btn-nav-icon me-2">
-              <i class="fas fa-paper-plane fa-fw"></i>
-            </div>
-            <span class="btn-nav-text font-weight-medium">Sent</span>
-          </button>
-        </div>
+			<div class="nav-item py-1">
+				<button class="btn btn-nav d-flex align-items-center w-100 text-start" id="sent">
+					<div class="btn-nav-icon me-2">
+						<i class="fas fa-paper-plane fa-fw"></i>
+					</div>
+					<span class="btn-nav-text font-weight-medium">Sent</span>
+				</button>
+			</div>
 
-        <div class="nav-item py-1">
-          <button class="btn btn-nav d-flex align-items-center w-100 text-start" id="archived">
-            <div class="btn-nav-icon me-2">
-              <i class="fas fa-archive fa-fw"></i>
-            </div>
-            <span class="btn-nav-text font-weight-medium">Archived</span>
-          </button>
-        </div>
+			<div class="nav-item py-1">
+				<button class="btn btn-nav d-flex align-items-center w-100 text-start" id="archived">
+					<div class="btn-nav-icon me-2">
+						<i class="fas fa-archive fa-fw"></i>
+					</div>
+					<span class="btn-nav-text font-weight-medium">Archived</span>
+				</button>
+			</div>
 
-        <div class="nav-item py-1">
-          <button class="btn btn-nav d-flex align-items-center w-100 text-start" id="drafts">
-            <div class="btn-nav-icon me-2">
-              <i class="fas fa-file-alt fa-fw"></i>
-            </div>
-            <span class="btn-nav-text font-weight-medium">Drafts</span>
-          </button>
-        </div>
+			<div class="nav-item py-1">
+				<button class="btn btn-nav d-flex align-items-center w-100 text-start" id="drafts">
+					<div class="btn-nav-icon me-2">
+						<i class="fas fa-file-alt fa-fw"></i>
+					</div>
+					<span class="btn-nav-text font-weight-medium">Drafts</span>
+				</button>
+			</div>
 
-        <div class="nav-item py-1 mt-3 border-top pt-3">
-          <a class="btn btn-nav d-flex align-items-center w-100 text-start text-danger" href="{% url 'logout' %}">
-            <div class="btn-nav-icon me-2">
-              <i class="fas fa-sign-out-alt fa-fw"></i>
-            </div>
-            <span class="btn-nav-text font-weight-medium">Log Out</span>
-          </a>
-        </div>
-      </div>
-    </div>
+			<div class="nav-item py-1 mt-3 border-top pt-3">
+				<a
+					class="btn btn-nav d-flex align-items-center w-100 text-start text-danger"
+					href="{% url 'logout' %}">
+					<div class="btn-nav-icon me-2">
+						<i class="fas fa-sign-out-alt fa-fw"></i>
+					</div>
+					<span class="btn-nav-text font-weight-medium">Log Out</span>
+				</a>
+			</div>
+		</div>
+	</div>
 
-    <!-- Main Content -->
-    <div class="content-wrapper container-fluid py-3 px-1 px-md-4">
-      <div class="container-md email-container animate-fadeInRight">
-        <!-- Main Content Area -->
-        <div class="row">
-          <div class="col-12">
-            <div class="card shadow-sm border-0 rounded-lg overflow-hidden animate-fadeInUp delay-200">
-              <div class="card-body p-0">
-                <!-- Emails View -->
-                <div id="emails-view" class="p-3 p-md-4"></div>
+	<!-- Main Content -->
+	<div class="content-wrapper container-fluid py-3 px-1 px-md-4">
+		<div class="container-md email-container animate-fadeInRight">
+			<!-- Main Content Area -->
+			<div class="row">
+				<div class="col-12">
+					<div
+						class="card shadow-sm border-0 rounded-lg overflow-hidden animate-fadeInUp delay-200">
+						<div class="card-body p-0">
+							<!-- Emails View -->
+							<div id="emails-view" class="p-3 p-md-4"></div>
 
-                <!-- Compose View -->
-                <div id="compose-view" class="p-3 p-md-4">
-                  <div class="compose-header d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="text-primary mb-0"><i class="fas fa-pen-fancy me-2"></i>Compose New Email</h3>
-                  </div>
+							<!-- Compose View -->
+							<div id="compose-view" class="p-3 p-md-4">
+								<div class="compose-header d-flex justify-content-between align-items-center mb-4">
+									<h3 class="text-primary mb-0">
+										<i class="fas fa-pen-fancy me-2"></i>Compose New Email
+									</h3>
+								</div>
 
-                  <div class="card shadow-sm border-0 rounded-lg">
-                    <div class="card-body p-3 p-md-4">
-                      <form id="compose-form">
-                        {% csrf_token %}
+								<div class="card shadow-sm border-0 rounded-lg">
+									<div class="card-body p-3 p-md-4">
+										<form id="compose-form">
+											{% csrf_token %}
 
-                        <div class="input-group mb-3">
-                          <span class="input-group-text bg-light text-primary"><i class="fas fa-user"></i></span>
-                          <input disabled class="form-control bg-light" id="compose-from" value="{{ request.user.email }}" />
-                        </div>
+											<div class="input-group mb-3">
+												<span class="input-group-text bg-light text-primary"
+													><i class="fas fa-user"></i
+												></span>
+												<input
+													disabled
+													class="form-control bg-light"
+													id="compose-from"
+													value="{{ request.user.email }}" />
+											</div>
 
-                        <div class="form-group mb-3">
-                          <div class="input-group">
-                            <span class="input-group-text bg-light text-primary"><i class="fas fa-users"></i></span>
-                            <input id="compose-recipients" class="form-control" placeholder="Recipients" />
-                          </div>
-                          <small class="text-muted">Separate multiple recipients with commas</small>
-                        </div>
+											<div class="form-group mb-3">
+												<div class="input-group">
+													<span class="input-group-text bg-light text-primary"
+														><i class="fas fa-users"></i
+													></span>
+													<input
+														id="compose-recipients"
+														class="form-control"
+														placeholder="Recipients" />
+												</div>
+												<small class="text-muted">Separate multiple recipients with commas</small>
+											</div>
 
-                        <div class="input-group mb-3">
-                          <span class="input-group-text bg-light text-primary"><i class="fas fa-heading"></i></span>
-                          <input class="form-control" id="compose-subject" placeholder="Subject" />
-                        </div>
+											<div class="input-group mb-3">
+												<span class="input-group-text bg-light text-primary"
+													><i class="fas fa-heading"></i
+												></span>
+												<input class="form-control" id="compose-subject" placeholder="Subject" />
+											</div>
 
-                        <div class="form-group">
-                          <textarea class="form-control" id="compose-body" placeholder="Write your message here..."></textarea>
-                        </div>
+											<div class="form-group">
+												<textarea
+													class="form-control"
+													id="compose-body"
+													placeholder="Write your message here..."></textarea>
+											</div>
 
-                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center border-top pt-3 mt-3 gap-2">
-                          <div class="d-flex flex-wrap gap-2 mb-3 mb-md-0 w-100 w-md-auto justify-content-center justify-content-md-start">
-                            <button type="button" id="discard-email" class="btn btn-outline-secondary">
-                              <i class="fas fa-trash-alt me-1"></i>
-                              <span class="btn-text">Discard</span>
-                            </button>
-                            <button type="button" id="save-draft" class="btn btn-outline-primary">
-                              <i class="fas fa-save me-1"></i>
-                              <span class="btn-text">Save Draft</span>
-                            </button>
-                          </div>
-                          <button type="submit" class="btn btn-primary btn-send shadow-sm w-100 w-md-auto">
-                            <i class="fas fa-paper-plane me-1"></i>
-                            <span class="btn-text">Send</span>
-                          </button>
-                        </div>
-                      </form>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+											<div
+												class="d-flex flex-column flex-md-row justify-content-between align-items-center border-top pt-3 mt-3 gap-2">
+												<div
+													class="d-flex flex-wrap gap-2 mb-3 mb-md-0 w-100 w-md-auto justify-content-center justify-content-md-start">
+													<button
+														type="button"
+														id="discard-email"
+														class="btn btn-outline-secondary">
+														<i class="fas fa-trash-alt me-1"></i>
+														<span class="btn-text">Discard</span>
+													</button>
+													<button type="button" id="save-draft" class="btn btn-outline-primary">
+														<i class="fas fa-save me-1"></i>
+														<span class="btn-text">Save Draft</span>
+													</button>
+												</div>
+												<button
+													type="submit"
+													class="btn btn-primary btn-send shadow-sm w-100 w-md-auto">
+													<i class="fas fa-paper-plane me-1"></i>
+													<span class="btn-text">Send</span>
+												</button>
+											</div>
+										</form>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 
-        <!-- Test Button (only visible in debug mode) -->
-        {% if debug %}
-          <div class="row">
-            <div class="col-12 text-center mt-4 animate-fadeInUp delay-400">
-              <button id="run-tests" class="btn btn-info shadow-sm"><i class="fas fa-vial me-1"></i> Test Email Display</button>
-            </div>
-          </div>
-        {% endif %}
-      </div>
-    </div>
-  </div>
+			<!-- Test Button (only visible in debug mode) -->
+			{% if debug %}
+			<div class="row">
+				<div class="col-12 text-center mt-4 animate-fadeInUp delay-400">
+					<button id="run-tests" class="btn btn-info shadow-sm">
+						<i class="fas fa-vial me-1"></i> Test Email Display
+					</button>
+				</div>
+			</div>
+			{% endif %}
+		</div>
+	</div>
+</div>
 
-  <!-- Dark mode toggle button -->
-  <div class="position-fixed bottom-0 end-0 p-3 animate-fadeInRight delay-300">
-    <button id="dark-mode-toggle" class="btn btn-outline-secondary rounded-circle shadow-sm p-2" aria-label="Toggle Dark Mode"><i class="fas fa-moon"></i></button>
-  </div>
-{% endblock %}
+<!-- Dark mode toggle button -->
+<div class="position-fixed bottom-0 end-0 p-3 animate-fadeInRight delay-300">
+	<button
+		id="dark-mode-toggle"
+		class="btn btn-outline-secondary rounded-circle shadow-sm p-2"
+		aria-label="Toggle Dark Mode">
+		<i class="fas fa-moon"></i>
+	</button>
+</div>
+{% endblock %} {% block script %}
+<!-- Data Bridge: Pasar datos de Django a JavaScript de forma segura -->
+{{ datos_para_js | json_script:"datos-django" }}
 
-{% block script %}
-  <script src="{% static 'mail/inbox.js' %}"></script>
-  <script src="{% static 'mail/dark-mode.js' %}"></script>
-  <script src="{% static 'mail/notifications.js' %}"></script>
-  {% if debug %}
-    <script src="{% static 'mail/tests/email-display.test.js' %}"></script>
-    <script src="{% static 'mail/tests/archive-tests.js' %}"></script>
-  {% endif %}
-{% endblock %}
+<script src="{% static 'mail/inbox.js' %}"></script>
+<script src="{% static 'mail/dark-mode.js' %}"></script>
+<script src="{% static 'mail/notifications.js' %}"></script>
+{% if debug %}
+<script src="{% static 'mail/tests/email-display.test.js' %}"></script>
+<script src="{% static 'mail/tests/archive-tests.js' %}"></script>
+{% endif %} {% endblock %}
