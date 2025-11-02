@@ -17,27 +17,28 @@ def index(request):
     if request.user.is_authenticated:
         # Add debug context for test button
         from django.conf import settings
-        
+
         # Preparar datos para JavaScript (Data Bridge)
         datos_para_js = {
-            'user': {
-                'id': request.user.id,
-                'email': request.user.email,
-                'username': request.user.get_username(),
-                'is_authenticated': True
+            "user": {
+                "id": request.user.id,
+                "email": request.user.email,
+                "username": request.user.get_username(),
+                "is_authenticated": True,
             },
-            'api_urls': {
-                'compose': reverse('compose'),
-                'mailbox': '/emails',  # Base URL para mailbox endpoints
-                'email_detail': '/emails',  # Base URL para email detail endpoints
+            "api_urls": {
+                "compose": reverse("compose"),
+                "mailbox": "/emails",  # Base URL para mailbox endpoints
+                "email_detail": "/emails",  # Base URL para email detail endpoints
             },
-            'debug': settings.DEBUG
-        }
-        
-        return render(request, "mail/inbox.html", {
             "debug": settings.DEBUG,
-            "datos_para_js": datos_para_js
-        })
+        }
+
+        return render(
+            request,
+            "mail/inbox.html",
+            {"debug": settings.DEBUG, "datos_para_js": datos_para_js},
+        )
 
     # Everyone else is prompted to sign in
     else:
@@ -159,32 +160,25 @@ def login_view(request):
         else:
             # Preparar datos para JavaScript (Data Bridge)
             datos_para_js = {
-                'user': {
-                    'is_authenticated': False
+                "user": {"is_authenticated": False},
+                "api_urls": {
+                    "login": reverse("login"),
+                    "register": reverse("register"),
                 },
-                'api_urls': {
-                    'login': reverse('login'),
-                    'register': reverse('register')
-                }
             }
             return render(
                 request,
                 "mail/login.html",
                 {
                     "message": "Invalid email and/or password.",
-                    "datos_para_js": datos_para_js
+                    "datos_para_js": datos_para_js,
                 },
             )
     else:
         # Preparar datos para JavaScript (Data Bridge)
         datos_para_js = {
-            'user': {
-                'is_authenticated': False
-            },
-            'api_urls': {
-                'login': reverse('login'),
-                'register': reverse('register')
-            }
+            "user": {"is_authenticated": False},
+            "api_urls": {"login": reverse("login"), "register": reverse("register")},
         }
         return render(request, "mail/login.html", {"datos_para_js": datos_para_js})
 
@@ -197,15 +191,10 @@ def logout_view(request):
 def register(request):
     # Preparar datos para JavaScript (Data Bridge)
     datos_para_js = {
-        'user': {
-            'is_authenticated': request.user.is_authenticated
-        },
-        'api_urls': {
-            'login': reverse('login'),
-            'register': reverse('register')
-        }
+        "user": {"is_authenticated": request.user.is_authenticated},
+        "api_urls": {"login": reverse("login"), "register": reverse("register")},
     }
-    
+
     if request.method == "POST":
         email = request.POST["email"]
 
@@ -214,10 +203,9 @@ def register(request):
         confirmation = request.POST["confirmation"]
         if password != confirmation:
             return render(
-                request, "mail/register.html", {
-                    "message": "Passwords must match.",
-                    "datos_para_js": datos_para_js
-                }
+                request,
+                "mail/register.html",
+                {"message": "Passwords must match.", "datos_para_js": datos_para_js},
             )
 
         # Attempt to create new user
@@ -231,7 +219,7 @@ def register(request):
                 "mail/register.html",
                 {
                     "message": "Email address already taken.",
-                    "datos_para_js": datos_para_js
+                    "datos_para_js": datos_para_js,
                 },
             )
         login(request, user)

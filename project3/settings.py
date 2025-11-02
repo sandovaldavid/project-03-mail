@@ -91,11 +91,11 @@ if os.environ.get("DJANGO_PRODUCTION", "True") == "True":
     }
 else:
     DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+        }
     }
-}
 
 AUTH_USER_MODEL = "mail.User"
 
@@ -136,7 +136,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = "/static/"
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 # Define a single directory for your static files to avoid duplicates
 STATICFILES_DIRS = [
@@ -144,7 +144,7 @@ STATICFILES_DIRS = [
 ]
 
 # Enable Whitenoise for efficient static file serving
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Ensure static files are properly handled in production
 WHITENOISE_MANIFEST_STRICT = False
